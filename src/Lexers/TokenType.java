@@ -1,31 +1,41 @@
-package Baithon;
+package Lexers;
 
 enum TokenType {
   // starters
   START, END, EOF,
 
   // Variable Declaration
-  MUGNA,
+  DECLARE,
+
+  // I/O
+  PRINT, SCAN,
+
   // Data types
-  NUMERO, LETRA, TINOOD,
+  INTEGER, CHARACTER, BOOLEAN, FLOAT,
 
+  // Literals
+  TRUE, FALSE,
 
-  // // Single-character tokens.
-  // LEFT_PAREN, RIGHT_PAREN, LEFT_BRACE, RIGHT_BRACE,
-  // COMMA, DOT, MINUS, PLUS, SEMICOLON, SLASH, STAR,
+  // Logical Operators
+  AND, OR, NOT,
 
-  // // One or two character tokens.
-  // BANG, BANG_EQUAL,
-  // EQUAL, EQUAL_EQUAL,
-  // GREATER, GREATER_EQUAL,
-  // LESS, LESS_EQUAL,
+  // Arithmetic Operators
+  PLUS, MINUS, TIMES, DIVIDE, MODULO,
 
-  // // Literals.
-  // IDENTIFIER, STRING, NUMBER,
+  // Comparison Operators
 
-  // // Keywords.
-  // AND, CLASS, ELSE, FALSE, FUN, FOR, IF, NIL, OR,
-  // PRINT, RETURN, SUPER, THIS, TRUE, VAR, WHILE,
+  EQUAL, NOT_EQUAL, LESS, LESS_EQUAL, GREATER, GREATER_EQUAL,
 
-  // EOF
+  // comments
+  DASH, DASH_DASH,
+
+  // Single-character tokens.
+  LEFT_PAREN, RIGHT_PAREN, LEFT_BRACE, RIGHT_BRACE, LEFT_BRACKET, RIGHT_BRACKET,
+  COMMA, DOT, SEMICOLON, SLASH, STAR,
+
+  // Bisaya++ Thing
+  CONCAT, NEW_LINE,
+
+  // Control Flow
+  IF, ELSE, ELIF, FOR, WHILE, DO, BREAK, CONTINUE, RETURN,
 }

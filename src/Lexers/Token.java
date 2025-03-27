@@ -1,9 +1,13 @@
-package Baithon;
+package Lexers;
 
-class Token {
+public class Token {
+  // Token class
   final TokenType type;
+  // Lexeme is the string representation of the token
   final String lexeme;
+  // Literal is the value of the token
   final Object literal;
+  // Line number of the token
   final int line; 
 
   Token(TokenType type, String lexeme, Object literal, int line) {
