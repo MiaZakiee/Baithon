@@ -1,4 +1,7 @@
-package Lox;
+package Main;
+
+import Lexers.Scanner;
+import Lexers.Token;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -8,7 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 
-public class Lox {
+public class Baithon {
   static boolean hadError = false;
   public static void main(String[] args) throws IOException {
     if (args.length > 1) {
@@ -44,7 +47,9 @@ public class Lox {
     Scanner scanner = new Scanner(source);
     List<Token> tokens = scanner.scanTokens();
 
-    // For now, just print the tokens.
+//    if any errors were found, stop printing tokens
+    if (hadError) return;
+
     for (Token token : tokens) {
       System.out.println(token);
     }

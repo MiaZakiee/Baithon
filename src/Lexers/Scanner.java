@@ -1,11 +1,11 @@
-package Lox;
+package Baithon;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static Lox.TokenType.*;
+import static Baithon.TokenType.*;
 
 class Scanner {
     // This is the file we will be scanning
@@ -25,6 +25,11 @@ class Scanner {
         keywords = new HashMap<>();
         keywords.put("START", TokenType.START);
         keywords.put("END", TokenType.END);
+        keywords.put("EOF", TokenType.EOF);
+        keywords.put("MUGNA", TokenType.MUGNA);
+        keywords.put("NUMERO", TokenType.NUMERO);
+        keywords.put("LETRA", TokenType.LETRA);
+        keywords.put("TINOOD", TokenType.TINOOD);
     }
 
     Scanner (String source) {

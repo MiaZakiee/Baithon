@@ -1,4 +1,4 @@
-package Lox;
+package Baithon;
 
 class Token {
   final TokenType type;

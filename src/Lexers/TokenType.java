@@ -1,8 +1,13 @@
-package Lox;
+package Baithon;
 
 enum TokenType {
   // starters
-  START, END, EOF
+  START, END, EOF,
+
+  // Variable Declaration
+  MUGNA,
+  // Data types
+  NUMERO, LETRA, TINOOD,
 
 
   // // Single-character tokens.
