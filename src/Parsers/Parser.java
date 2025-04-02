@@ -40,14 +40,15 @@ public class Parser {
     private  Expression parseTokens() {
         while (!isAtEnd()) {
             Token token = advance();
-            System.out.println("Parsing token: " + token); // Debugging output
+            // System.out.println("Parsing token: " + token); // Debugging output
             // TODO: Implement parsing rules here
 
+            // Wrong implementation
             // Ensure first token is START
-            if (!(token.getType() == TokenType.START)) {
-                System.out.println("Error: Expected START token, got " + token);
-                return null;
-            }
+            // if (!(token.getType() == TokenType.START)) {
+            //     System.out.println("Error: Expected START token, got " + token);
+            //     return null;
+            // }
         }
 
         return null; // Placeholder return

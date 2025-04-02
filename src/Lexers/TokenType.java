@@ -10,6 +10,9 @@ public enum TokenType {
   // I/O
   PRINT, SCAN,
 
+  // Identifiers
+  IDENTIFIER,
+
   // Data types
   INTEGER, CHARACTER, BOOLEAN, FLOAT,
 
@@ -20,10 +23,13 @@ public enum TokenType {
   AND, OR, NOT,
 
   // Arithmetic Operators
-  PLUS, MINUS, TIMES, DIVIDE, MODULO,
+  PLUS, MINUS, MULTIPLY, DIVIDE, MODULO,
+
+  // Assignment Operators
+  ASSIGN, PLUS_ASSIGN, MINUS_ASSIGN, MULTIPLY_ASSIGN, DIVIDE_ASSIGN,
+  MODULO_ASSIGN,
 
   // Comparison Operators
-
   EQUAL, NOT_EQUAL, LESS, LESS_EQUAL, GREATER, GREATER_EQUAL,
 
   // comments
@@ -31,7 +37,7 @@ public enum TokenType {
 
   // Single-character tokens.
   LEFT_PAREN, RIGHT_PAREN, LEFT_BRACE, RIGHT_BRACE, LEFT_BRACKET, RIGHT_BRACKET,
-  COMMA, DOT, SEMICOLON, SLASH, STAR,
+  COMMA, DOT, SEMICOLON,
 
   // Bisaya++ Thing
   CONCAT, NEW_LINE,

@@ -6,11 +6,11 @@
  * 
  * The scanner will also check for the following:
  * - Single character tokens
- * - Two character tokens TODO
+ * - Two character tokens
  * - Whitespaces
  * - Comments
  * - Numbers
- * - Identifiers (AKA variables) TODO
+ * - Identifiers (AKA variables)
  * 
  * Naa pa shay missing functionalities and I would love to do some unit testing for this. 
  * as well as for the whole project :D
@@ -103,10 +103,11 @@ public class Scanner {
       case ',': addToken(COMMA); break;
       case '.': addToken(DOT); break;
       case ';': addToken(SEMICOLON); break;
-      case '/': addToken(SLASH); break;
-      case '*': addToken(STAR); break;
-      case '+': addToken(PLUS); break;
-      case '%': addToken(MODULO); break;
+      case '/': addToken(match('=') ? DIVIDE : DIVIDE_ASSIGN); break;
+      case '*': addToken(match('=') ? MULTIPLY : MULTIPLY_ASSIGN); break;
+      case '%': addToken(match('=') ? MODULO : MODULO_ASSIGN); break;
+      case '+': addToken(match('=') ? PLUS : PLUS_ASSIGN); break;
+
       // Bisaya++ thing
       case '&': addToken(NEW_LINE);
       case '$': addToken(CONCAT);
@@ -124,11 +125,13 @@ public class Scanner {
       case '\t': break;
       case '\n': line++; break;
 
-      // comments
       case '-': 
-        if (match('-')) {
+        if (match('-')) { // Comments
           while (peek() != '\n' && !isAtEnd()) advance();
-        } else {
+        } else if (match('=')) {  // Assignment operator
+          addToken(MINUS_ASSIGN);
+        } 
+        else {  // Minus operator
           addToken(MINUS);
         }
         break;
@@ -168,26 +171,51 @@ public class Scanner {
     addToken(INTEGER);
   }
 
-  private void identifier() {    
-    while (Character.isLetter(peek())) {
+  private void identifier() {
+    // Consume the whole identifier/variable name
+    // no need to check if first character is a digit since na cover na sha sa scanToken
+    while (Character.isLetterOrDigit(peek()) || peek() == '_') {
       advance();
     }
 
+    // Check if the identifier is a reserved word
     String text = source.substring(start, current);
     TokenType type = keywords.getOrDefault(text, null);
 
-    // Stop scanning when END is found
-    if (type == TokenType.END) {
-      current = source.length(); // Force scanner to finish
-    }
-
-    
+    // If the identifier is a reserved word, add it to the list of tokens
     if (type != null) {
       addToken(type);
-    } else {
-      Baithon.error(line, "Unexpected word: " + text);
-    }
+      return;
+    } 
 
+
+    // If the identifier has a space in it, we need to check if the next character is a space
+    // and if it is, we need to consume it
+    if (peek() == ' ') {
+      int currentIndex = current;
+      advance(); // go to the next character
+
+      // read the next identifier
+      int secondStart = current;
+      while (Character.isLetterOrDigit(peek()) || peek() == '_') {
+        advance();
+      }
+
+      // combine the two identifiers
+      String secondText = source.substring(secondStart, current);
+      TokenType concatTokenType = keywords.getOrDefault(text + " " + secondText, null);
+
+      // if the combined identifier is a reserved word, add it to the list of tokens
+      // else go back to the previous character
+      if (concatTokenType != null) {
+        addToken(concatTokenType);
+        return;
+      } else {
+        current = currentIndex;
+      }
+    }
+    // base case, one word token
+    addToken(IDENTIFIER);
   }
 
 // ------------------------ UTIL FUNCTIONS -------------------------
