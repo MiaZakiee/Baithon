@@ -10,7 +10,7 @@ public class Token {
   // Line number of the token
   final int line; 
 
-  Token(TokenType type, String lexeme, Object literal, int line) {
+  public Token(TokenType type, String lexeme, Object literal, int line) {
     this.type = type;
     this.lexeme = lexeme;
     this.literal = literal;
@@ -19,6 +19,15 @@ public class Token {
 
   public String toString() {
     return type + " " + lexeme + " " + literal;
+  }
+  
+  public TokenType getType() {
+    return type;
+  }
+
+  // Getters
+  public String getLexeme() {
+    return this.lexeme;
   }
 }
 

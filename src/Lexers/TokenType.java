@@ -1,6 +1,6 @@
 package Lexers;
 
-enum TokenType {
+public enum TokenType {
   // starters
   START, END, EOF,
 

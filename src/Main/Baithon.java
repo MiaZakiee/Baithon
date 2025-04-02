@@ -3,6 +3,8 @@ package Main;
 import Lexers.Scanner;
 import Lexers.Token;
 
+import Parsers.Parser;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -44,12 +46,19 @@ public class Baithon {
 
   private static void run(String source) {
     if (hadError) System.exit(65);
+    
+    // Lexical Analysis
     Scanner scanner = new Scanner(source);
     List<Token> tokens = scanner.scanTokens();
 
-//    if any errors were found, stop printing tokens
+    // if any errors were found, stop printing tokens
     if (hadError) return;
 
+    // Parse tokens
+    Parser parser = new Parser(tokens);
+    parser.parse();
+
+    // Print tokens
     for (Token token : tokens) {
       System.out.println(token);
     }
