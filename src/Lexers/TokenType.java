@@ -14,10 +14,12 @@ public enum TokenType {
   IDENTIFIER,
 
   // Data types
+  NUMBER, STRING,
   INTEGER, CHARACTER, BOOLEAN, FLOAT,
 
   // Literals
   TRUE, FALSE,
+  NIL,
 
   // Logical Operators
   AND, OR, NOT,

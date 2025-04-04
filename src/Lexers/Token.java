@@ -29,5 +29,13 @@ public class Token {
   public String getLexeme() {
     return this.lexeme;
   }
+
+  public Object getLiteral() {
+    return this.literal;
+  }
+
+  public int getLine() {
+    return this.line;
+  }
 }
 

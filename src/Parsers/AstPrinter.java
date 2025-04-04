@@ -5,7 +5,7 @@
 
 package Parsers;
 
-class AstPrinter implements Expr.Visitor<String> {
+public class AstPrinter implements Expr.Visitor<String> {
     @Override
     public String visitAssignExpr(Expr.Assign expr) {
         return parenthesize("assign " + expr.name.getLexeme(), expr.value);
@@ -44,7 +44,7 @@ class AstPrinter implements Expr.Visitor<String> {
     }
 
     // Helper function
-    public String parenthesize(String name, Expr... exprs) {
+    private String parenthesize(String name, Expr... exprs) {
         StringBuilder builder = new StringBuilder();
         
         builder.append("(").append(name);
@@ -56,4 +56,10 @@ class AstPrinter implements Expr.Visitor<String> {
 
         return builder.toString();
     }
+
+    public String print(Expr expr) {
+        return expr.accept(this);
+    }
 }
+
+

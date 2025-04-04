@@ -17,10 +17,10 @@ package Parsers;
 
 import Lexers.Token;
 
-abstract class Expr {
+abstract public class Expr {
 
     // The base class for all expression types
-    interface Visitor<R> {
+    public interface Visitor<R> {
         R visitAssignExpr(Assign expr);
         R visitUnaryExpr(Unary expr);
         R visitBinaryExpr(Binary expr);
@@ -30,13 +30,12 @@ abstract class Expr {
         R visitVariableExpr(Variable expr);
     }
 
-    abstract <R> R accept(Visitor<R> visitor);
-
+    public abstract  <R> R accept(Visitor<R> visitor);
     // Expression types
 
     // Assignment expression
     // This is used to represent the assignment of a value to a variable
-    static class Assign extends Expr {
+    public static class Assign extends Expr {
         final Token name;
         final Expr value;
 
@@ -46,14 +45,22 @@ abstract class Expr {
         }
 
         @Override
-        <R> R accept(Visitor<R> visitor) {
+        public <R> R accept(Visitor<R> visitor) {
             return visitor.visitAssignExpr(this);
+        }
+
+        // getter
+        public Token getName() {
+            return name;
+        }
+        public Expr getValue() {
+            return value;
         }
     }
 
     // Binary expression
     // This is used to represent binary operations like addition, subtraction, etc.
-    static class Binary extends Expr {
+    public static class Binary extends Expr {
         final Expr left;
         final Token operator;
         final Expr right;
@@ -65,15 +72,26 @@ abstract class Expr {
         }
 
         @Override
-        <R> R accept(Visitor<R> visitor) {
+        public <R> R accept(Visitor<R> visitor) {
             return visitor.visitBinaryExpr(this);
+        }
+
+        // getters
+        public Expr getLeft() {
+            return left;
+        }
+        public Token getOperator() {
+            return operator;
+        }
+        public Expr getRight() {
+            return right;
         }
     }
 
     // Grouping expression
     // This is used to represent expressions that are grouped together
     // using parentheses
-    static class Grouping extends Expr {
+    public static class Grouping extends Expr {
         final Expr expression;
 
         public Grouping(Expr expression) {
@@ -81,14 +99,19 @@ abstract class Expr {
         }
 
         @Override
-        <R> R accept(Visitor<R> visitor) {
+        public <R> R accept(Visitor<R> visitor) {
             return visitor.visitGroupingExpr(this);
+        }
+
+        // getter
+        public Expr getExpression() {
+            return expression;
         }
     }
 
     // Literal expression
     // This is used to represent literal values like numbers, strings, etc.
-    static class Literal extends Expr {
+    public static class Literal extends Expr {
         final Object value;
 
         public Literal(Object value) {
@@ -96,14 +119,19 @@ abstract class Expr {
         }
 
         @Override
-        <R> R accept(Visitor<R> visitor) {
+        public <R> R accept(Visitor<R> visitor) {
             return visitor.visitLiteralExpr(this);
+        }
+
+        // getter
+        public Object getValue() {
+            return value;
         }
     }
 
     // Logical expression
     // This is used to represent logical operations like AND, OR, etc.
-    static class Logical extends Expr {
+    public static class Logical extends Expr {
         final Expr left;
         final Token operator;
         final Expr right;
@@ -115,14 +143,25 @@ abstract class Expr {
         }
 
         @Override
-        <R> R accept(Visitor<R> visitor) {
+        public <R> R accept(Visitor<R> visitor) {
             return visitor.visitLogicalExpr(this);
+        }
+
+        // getters
+        public Expr getLeft() {
+            return left;
+        }
+        public Token getOperator() {
+            return operator;
+        }
+        public Expr getRight() {
+            return right;
         }
     }
 
     // Unary expression
     // This is used to represent unary operations like negation, etc.
-    static class Unary extends Expr {
+    public static class Unary extends Expr {
         final Token operator;
         final Expr right;
 
@@ -132,14 +171,22 @@ abstract class Expr {
         }
 
         @Override
-        <R> R accept(Visitor<R> visitor) {
+        public <R> R accept(Visitor<R> visitor) {
             return visitor.visitUnaryExpr(this);
+        }
+
+        // getters
+        public Token getOperator() {
+            return operator;
+        }
+        public Expr getRight() {
+            return right;
         }
     }
 
     // Variable expression
     // This is used to represent variables in the language
-    static class Variable extends Expr {
+    public static class Variable extends Expr {
         final Token name;
 
         public Variable(Token name) {
@@ -147,8 +194,13 @@ abstract class Expr {
         }
 
         @Override
-        <R> R accept(Visitor<R> visitor) {
+        public <R> R accept(Visitor<R> visitor) {
             return visitor.visitVariableExpr(this);
+        }
+
+        // getter
+        public Token getName() {
+            return name;
         }
     }
 }
