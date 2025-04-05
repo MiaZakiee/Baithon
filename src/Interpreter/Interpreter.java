@@ -260,6 +260,10 @@ public class Interpreter implements Expr.Visitor<Object>
     }
 
     private boolean isTypeCompatible(TokenType declaredType, Object value) {
+        if (declaredType == TokenType.BOOLEAN && value instanceof String) {
+            return value.equals("OO") || value.equals("DILI");
+        }
+
         boolean result =  switch (declaredType) {
             case INTEGER -> value instanceof Integer;
             case FLOAT -> value instanceof Double;

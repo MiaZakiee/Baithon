@@ -225,13 +225,7 @@ public class Scanner {
 
     // get the string value
     String value = source.substring(start + 1, current - 1);
-    if (value.equals("OO")) {
-      addToken(TRUE, true);
-    } else if (value.equals("DILI")) {
-      addToken(FALSE,false);
-    } else {
-      addToken(TokenType.STRING, value);
-    }
+    addToken(TokenType.STRING, value);
     // debugging
     System.out.println("scanner/string: " + value);
   }

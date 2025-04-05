@@ -1,3 +1,4 @@
 SUGOD
-    MUGNA TINOOD x = "OO"
+    MUGNA STRING x = "OOs"
+    MUGNA TINOOD hmmm = "OOs"
 KATAPUSAN
