@@ -1,6 +1,7 @@
 package Parsers;
 
 import Lexers.Token;
+import Lexers.TokenType;
 import java.util.List;
 
 public abstract class Stmt {
@@ -9,6 +10,7 @@ public abstract class Stmt {
         R visitPrintStmt(Print stmt);
         R visitVarStmt(Var stmt);
         R visitBlockStmt(Block stmt);
+        R visitMultiVar(MultiVar stmt);
     }
 
     public static class Expression extends Stmt {
@@ -48,13 +50,15 @@ public abstract class Stmt {
     }
 
     public static class Var extends Stmt {
-        public Var(Token name, Expr initializer) {
+        public Var(Token name, Expr initializer, TokenType declaredType) {
             this.name = name;
             this.initializer = initializer;
+            this.declaredType = declaredType; 
         }
 
         final Token name;
         final Expr initializer;
+        final TokenType declaredType;
 
         @Override
         public <R> R accept(Visitor<R> visitor) {
@@ -67,6 +71,10 @@ public abstract class Stmt {
         }
         public Expr getInitializer() {
             return initializer;
+        }
+
+        public TokenType getDeclaredType() {
+            return declaredType;
         }
     }
 
@@ -85,6 +93,34 @@ public abstract class Stmt {
         // getter
         public List<Stmt> getStatements() {
             return statements;
+        }
+    }
+
+    public static class MultiVar extends Stmt {
+        public final List<Token> names;
+        public final List<Expr> initializers;
+        public final TokenType declaredType;
+
+        public MultiVar(List<Token> names, List<Expr> initializers, TokenType declaredType) {
+            this.names = names;
+            this.initializers = initializers;
+            this.declaredType = declaredType;
+        }
+
+        @Override
+        public <R> R accept(Visitor<R> visitor) {
+            return visitor.visitMultiVar(this);
+        }
+
+        // getters
+        public List<Token> getNames() {
+            return names;
+        }
+        public List<Expr> getInitializers() {
+            return initializers;
+        }
+        public TokenType getDeclaredType() {
+            return declaredType;
         }
     }
 

@@ -1,0 +1,37 @@
+SUGOD
+    -- Test Case 1: Single Variable Declaration with Initializer
+    MUGNA NUMERO x = 5
+    MUGNA STRING greeting = "Hello, World!"
+    MUGNA TINOOD isTrue = "OO"
+    MUGNA LETRA letter = 'a'
+    -- Test Case 2: Single Variable Declaration Without Initializer
+    MUGNA NUMERO y
+    MUGNA STRING message
+    MUGNA TINOOD isFalse
+    MUGNA LETRA charVar
+    -- Test Case 3: Multiple Variable Declarations with Shared Initializer
+    MUGNA NUMERO a, b, c = 10
+    MUGNA STRING str1, str2, str3 = "shared"
+    MUGNA TINOOD flag1, flag2 = "OO"
+    -- Test Case 4: Multiple Variable Declarations Without Initializer
+    MUGNA NUMERO p, q, r
+    MUGNA STRING s1, s2, s3
+    MUGNA TINOOD bool1, bool2 = "OO"
+    -- Test Case 5: Mixed Initializers in Multiple Declarations 
+    MUGNA NUMERO m = 5, n, o = 10
+    -- Test Case 6: Invalid Data Type
+    -- OK NA MUGNA INVALID_TYPE invalidVar = 5
+    -- Test Case 7: Missing Variable Name
+    -- OK NA MUGNA NUMERO = 5
+    -- Test Case 8: Missing Initializer After `=`
+    -- OK NA MUGNA NUMERO z =
+    -- Test Case 9: Multiple Declarations with Mixed Types (Invalid)
+    -- OK NA MUGNA NUMERO x1, STRING y1 = "hello"
+    -- Test Case 10: Inline Comments with Declarations
+    MUGNA NUMERO x2 = 5 -- This is a comment
+    MUGNA STRING greeting2 = "Hello" -- Another comment
+    -- Test Case 11: Multiple Declarations with Commas and No Initializer
+    MUGNA NUMERO u, v, w
+    -- Test Case 12: Multiple Declarations with Mixed Initializers (Valid)
+    MUGNA NUMERO x3 = 5, y3 = 10, z3 = 15
+KATAPUSAN

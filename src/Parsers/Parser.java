@@ -61,6 +61,7 @@ public class Parser {
 
         // parse the statements
         while (!isAtEnd() && !check(TokenType.END)) {
+            if (match(TokenType.NEW_LINE)) continue; // skip new lines
             statements.add(statement());
         }
 
@@ -97,12 +98,11 @@ public class Parser {
             stmt = expressionStatement();
         }
 
-        // need new line after statement
-        if (match(TokenType.NEW_LINE) || check(TokenType.END)) {
-            return stmt;
-        } else {
+        if (!match(TokenType.NEW_LINE) && !check(TokenType.END)) {
             throw error(peek(), "Expect new line after statement.");
         }
+
+        return stmt;
     }
 
     private Stmt declaration() {
@@ -124,28 +124,48 @@ public class Parser {
     private Stmt varDeclaration() {
         // need to consume data types
         TokenType dataType = peek().getType();
+        // System.out.println("Parser: declared dataType: " + dataType);
+
         if (dataType != INTEGER 
         && dataType != FLOAT 
         && dataType != CHARACTER
-        && dataType != BOOLEAN) {
+        && dataType != BOOLEAN
+        && dataType != STRING) {
             throw error(peek(), "Invalid data type.");
         }
 
         advance(); // consume data type
 
-        Token name = consume(TokenType.IDENTIFIER, "Invalid variable name.");
+        // parse the variable nameS PLURAL for multi declaration
+        List<Token> names = new ArrayList<>();
+        List<Expr> initializers = new ArrayList<>();
+        
+        do {
+            Token name = consume(TokenType.IDENTIFIER, "Expected variable name.");
+            names.add(name);
 
-        Expr initializer = null;
-        if (match(EQUAL)) {
-            initializer = expression();
-        }
+            if (match(EQUAL)) {
+                // if the next token is a new line or end, throw an error
+                if (check(TokenType.NEW_LINE) || check(TokenType.END)) {
+                    throw error(peek(), "Missing initializer after '='.");
+                }
 
-        // Allow either a NEW_LINE or EOF after the declaration
-        // if (!match(TokenType.NEW_LINE) || !check(TokenType.END)) {
-            // throw error(peek(), "Expect new line after variable declaration.");
-        // }
+                Expr initializer = expression();
+                // debugging
+                // System.out.println("Parser: found initializer: " + name.getLexeme() + " = " + initializer);
+                initializers.add(initializer);
+            } else {
+                initializers.add(null);
+            }
 
-        return new Stmt.Var(name, initializer);
+        } while (match(COMMA));
+
+        // DEBUGGINg
+        // System.out.println("Parser: names: " + names);
+        // System.out.println("Parser: initializer: " + initializers);
+        // System.out.println("Parser: dataType: " + dataType);
+
+        return new Stmt.MultiVar(names, initializers, dataType);
     }
 
     private Stmt expressionStatement() {
@@ -171,6 +191,9 @@ public class Parser {
 
         if (match(EQUAL)) {
             Token equals = previous();
+            if (check(TokenType.NEW_LINE) || check(TokenType.END)) {
+                throw error(equals, "Missing initializer after '='.");
+            }
             Expr value = assignment();
 
             if (expr instanceof Expr.Variable) {
@@ -254,7 +277,7 @@ public class Parser {
         if (match(TokenType.TRUE)) return new Expr.Literal(true);
         if (match(TokenType.NIL)) return new Expr.Literal(null);
 
-        if (match(TokenType.INTEGER, TokenType.FLOAT)) {
+        if (match(TokenType.INTEGER, TokenType.FLOAT, TokenType.CHARACTER, TokenType.STRING)) {
             // DEBUG FOR PARSER
             // Object literalValue = previous().getLiteral();
             // System.out.println("Parser literalValue: " + literalValue + " type: " + previous().getType());
@@ -328,10 +351,12 @@ public class Parser {
     // this function is used to match the token with the type
     private boolean match(TokenType... types) {
         for (TokenType type : types) {
-        if (check(type)) {
-            advance();
-            return true;
-        }
+            if (check(type)) {
+                // DEBUGGING
+                // System.out.println("Parser: matched token: " + type);
+                advance();
+                return true;
+            }
         }
 
         return false;
@@ -353,7 +378,11 @@ public class Parser {
     }
 
     private Token advance() {
-        if (!isAtEnd()) current++;
+        if (!isAtEnd()) {
+            // DEBUGGING
+            // System.out.println("Parser: advancing token: " + peek());
+            current++;
+        }
         return previous();
     }
 

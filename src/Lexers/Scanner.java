@@ -49,15 +49,18 @@ public class Scanner {
     keywords.put("LETRA", TokenType.CHARACTER);
     keywords.put("TIPIK", TokenType.FLOAT);
     keywords.put("TINOOD", TokenType.BOOLEAN);
+    // TODO: temporary word will not use string as keyword!
+    keywords.put("STRING", TokenType.STRING);
 
     // Logical Operators
     keywords.put("O", TokenType.OR);
     keywords.put("UG", TokenType.AND);
     keywords.put("DILI", TokenType.NOT);
 
-    // Literals
-    keywords.put("OO",TokenType.TRUE);
-    keywords.put("DILI",TokenType.FALSE);
+    // BOOLEAN VALUES
+    // REMOVED BECAUSE OF LANGUAGE SPECIFICATION SAKDNSADNJASNDKASNDA
+    // keywords.put("\"OO\"",TokenType.TRUE);
+    // keywords.put("\"DILI\"",TokenType.FALSE);
 
     // Control Flow
     keywords.put("ALANG SA",TokenType.FOR);
@@ -101,6 +104,12 @@ public class Scanner {
       case '[': addToken(LEFT_BRACKET); break;
       case ']': addToken(RIGHT_BRACKET); break;
       case ',': addToken(COMMA); break;
+      case '"':
+          string();
+        break;
+      case '\'':
+        character();
+        break;
       case '.': 
         if (Character.isDigit(peek())) {
           number();
@@ -140,7 +149,14 @@ public class Scanner {
 
       case '-': 
         if (match('-')) { // Comments
+          // consume the rest of the line
           while (peek() != '\n' && !isAtEnd()) advance();
+          // consume the new line
+          if (peek() == '\n') {
+            line++;
+            addToken(NEW_LINE);
+            advance();
+          }
         } else if (match('=')) {  // Assignment operator
           addToken(MINUS_ASSIGN);
         } 
@@ -153,8 +169,6 @@ public class Scanner {
         if (Character.isDigit(c)) {
           number();
         } else if (Character.isLetter(c)) {
-          //Check first through this function if the scanned text is a reserved word or an identifier
-          //TOD0 SOME RESERVED WORDS ARE SEPARATED BY SPACE. EX. "KUNG WALA"
           identifier();
         } else {
           Baithon.error(line, "Unexpected character.");
@@ -172,8 +186,57 @@ public class Scanner {
     tokens.add(new Token(type, source.substring(start, current), literal, line));
   }
 
-  // This function will scan the number and add it to the list of tokens
+  // This function will scan the character and add it to the list of tokens
+  void character () {
+    if (isAtEnd() || peek() == '\n') {
+      Baithon.error(line, "Unterminated character literal.");
+      return;
+    }
 
+    char value = advance();
+
+    if (peek() == '\'') {
+      advance(); // consume the closing quote
+      addToken(TokenType.CHARACTER, value);
+    } else {
+      Baithon.error(line, "Unterminated character literal.");
+    }
+
+    // debugging
+    // System.out.println("scanner/character: " + value);
+  }
+
+  // This function will scan the string and add it to the list of tokens
+  void string() {
+    // consume string
+    while (peek() != '"' && !isAtEnd()) {
+      if (peek() == '\n') line++;
+      advance();
+    }
+
+    // check if the string is closed properly
+    if (isAtEnd()) {
+      Baithon.error(line, "Unterminated string.");
+      return;
+    }
+
+    // consume the closing quote
+    advance();
+
+    // get the string value
+    String value = source.substring(start + 1, current - 1);
+    if (value.equals("OO")) {
+      addToken(TRUE, true);
+    } else if (value.equals("DILI")) {
+      addToken(FALSE,false);
+    } else {
+      addToken(TokenType.STRING, value);
+    }
+    // debugging
+    System.out.println("scanner/string: " + value);
+  }
+
+  // This function will scan the number and add it to the list of tokens
   void number() {
     boolean isDouble = false;
 
@@ -222,12 +285,15 @@ public class Scanner {
         numberValue = Integer.valueOf(numberAsString);
         addToken(TokenType.INTEGER, numberValue);
       }
+
     } catch (NumberFormatException e) {
       Baithon.error(line, "Invalid number format: " + numberAsString);
     }
   }
 
 
+  // this function will scan the identifier and add it to the list of tokens
+  // it will also check if the identifier is a reserved word
   private void identifier() {
     // Consume the whole identifier/variable name
     // no need to check if first character is a digit since na cover na sha sa scanToken

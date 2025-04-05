@@ -13,7 +13,6 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
-
 public class Baithon {
   // checks if there are any errors
   static boolean hadError = false;
@@ -67,7 +66,7 @@ public class Baithon {
 
     // debugging
     // for (Token token : tokens) {
-      // System.out.println(token);
+    //   System.out.println(token);
     // }
 
     // Parsing

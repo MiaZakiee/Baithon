@@ -12,6 +12,7 @@
 package Interpreter;
 
 import Lexers.Token;
+import Lexers.TokenType;
 import Main.Baithon;
 import Main.Environment;
 import Parsers.*;
@@ -142,10 +143,55 @@ public class Interpreter implements Expr.Visitor<Object>
         return evaluate(expr.getExpression());
     }
 
+    @Override
+    public Void visitMultiVar(Stmt.MultiVar stmt) {
+        List<Token> names = stmt.getNames();
+        List<Expr> initializers = stmt.getInitializers();
+        TokenType declaredType = stmt.getDeclaredType();
+
+        for(int i = 0; i < names.size(); i++) {
+            Token name = names.get(i);
+            Expr initializer = initializers.get(i);
+            Object value = null;
+
+            if (initializer != null) {
+                value = evaluate(initializer);
+
+                // Debugging
+                // System.out.println("Interpretter: declared type: " + declaredType);
+                // System.out.println("Interpretter: initializer value: " + value);
+                // System.out.println("Interpretter: initializer type: " + value.getClass().getName());
+
+                if (!isTypeCompatible(declaredType, value)) {
+                    throw new RunTimeError(name, 
+                    "Declared type " + declaredType + " does not match initializer type " + value.getClass().getName());
+                }
+            }
+
+            environment.define(name.getLexeme(), value);
+
+            // DEBUGING FEATURE: print the variable name and value
+            try {
+                System.out.println("Variable " + name.getLexeme() + " = " + stringify(value) + " of type " + value.getClass().getName());
+            } catch (NullPointerException e) {
+                System.out.println("null variable");
+            }
+        }
+        return null;
+    }
+
     // Helper functions -----------------------------------------------------
 
     private Object evaluate(Expr expr) {
         return expr.accept(this);
+    }
+
+    private Object evaluate(List<Expr> expressions) {
+        Object value = null;
+        for (Expr expression : expressions) {
+            value = evaluate(expression);
+        }
+        return value;
     }
 
     private void execute(Stmt stmt) {
@@ -187,19 +233,44 @@ public class Interpreter implements Expr.Visitor<Object>
     @Override
     public Void visitVarStmt(Stmt.Var stmt) {
         Object value = null;
+
         if (stmt.getInitializer() != null) {
             value = evaluate(stmt.getInitializer());
-            // DEBUGING FEATURE: print the initializer value and type
-            // System.out.println("Initializer: " + value);
-            // System.out.println("Initializer type: " + value.getClass());
-            // System.out.println("Initializer type name: " + value.getClass().getName());
+
+            // Debugging
+            System.out.println("Interpretter: declared type: " + stmt.getDeclaredType());
+            System.out.println("Interpretter: initializer value: " + value);
+            System.out.println("Interpretter: initializer type: " + value.getClass().getName());
+
+            TokenType declaredType = stmt.getDeclaredType();
+            if (!isTypeCompatible(declaredType, value)) {
+                throw new RunTimeError(stmt.getName(), "Declared type " + declaredType + " does not match initializer type " + value.getClass().getName());
+            }
         }
 
         environment.define(stmt.getName().getLexeme(), value);
 
         // DEBUGING FEATURE: print the variable name and value
-        System.out.println("Variable " + stmt.getName().getLexeme() + " = " + stringify(value) + " of type " + value.getClass().getName());
+        try {
+            System.out.println("Variable " + stmt.getName().getLexeme() + " = " + stringify(value) + " of type " + value.getClass().getName());
+        } catch (NullPointerException e) {
+            System.out.println("null variable");
+        }
         return null;
+    }
+
+    private boolean isTypeCompatible(TokenType declaredType, Object value) {
+        boolean result =  switch (declaredType) {
+            case INTEGER -> value instanceof Integer;
+            case FLOAT -> value instanceof Double;
+            case STRING -> value instanceof String;
+            case BOOLEAN -> value instanceof Boolean;
+            case CHARACTER -> value instanceof Character;
+            default -> false;
+        };
+
+        System.out.println("isTypeCompatible: Declared type: " + declaredType + ", Value type: " + (value != null ? value.getClass().getName() : "null") + ", Result: " + result);
+        return result;
     }
 
     private boolean isEqual(Object left, Object right) {
@@ -220,6 +291,10 @@ public class Interpreter implements Expr.Visitor<Object>
         }
 
         if (object instanceof Integer) return object.toString();
+
+        if (object instanceof Boolean) return (boolean) object ? "true" : "false";
+        if (object instanceof Character) return object.toString();
+        if (object instanceof String) return (String) object;
 
         return object.toString();
     }
