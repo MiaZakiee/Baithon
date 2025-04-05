@@ -13,22 +13,31 @@ package Interpreter;
 
 import Lexers.Token;
 import Main.Baithon;
+import Main.Environment;
 import Parsers.*;
+import java.util.List;
 
-public class Interpreter implements Expr.Visitor<Object> {
+public class Interpreter implements Expr.Visitor<Object>
+                                    ,Stmt.Visitor<Void> {
+    private Environment environment = new Environment();
+
+
     @Override
     public Object visitAssignExpr(Expr.Assign expr) {
-        return null;
+        Object value = evaluate(expr.getValue());
+        environment.assign(expr.getName(), value);
+        return value;
     }
 
-    public void interpret(Expr expr) {
+    public void interpret(List<Stmt> statements) {
         try {
-            Object value = evaluate(expr);
-            System.out.println(stringify(value));
+        for (Stmt statement : statements) {
+            execute(statement);
+        }
         } catch (RunTimeError error) {
             Baithon.runTimeError(error);
         }
-    }
+    } 
 
     @Override
     public Object visitUnaryExpr(Expr.Unary expr) {
@@ -108,7 +117,14 @@ public class Interpreter implements Expr.Visitor<Object> {
     
     @Override
     public Object visitLiteralExpr(Expr.Literal expr) {
-        return expr.getValue();
+        Object value = expr.getValue();
+
+        // DEBUGING FEATURE: print the literal value and type
+        // System.out.println("Literal value: " + value);
+        // System.out.println("Literal type: " + value.getClass());
+        // System.out.println("Literal type name: " + value.getClass().getName());
+
+        return value;
     }
 
     @Override
@@ -118,8 +134,8 @@ public class Interpreter implements Expr.Visitor<Object> {
 
 	@Override
 	public Object visitVariableExpr(Expr.Variable expr) {
-		return null;
-	}
+        return environment.get(expr.getName());
+    }
 
     @Override
     public Object visitGroupingExpr(Expr.Grouping expr) {
@@ -130,6 +146,60 @@ public class Interpreter implements Expr.Visitor<Object> {
 
     private Object evaluate(Expr expr) {
         return expr.accept(this);
+    }
+
+    private void execute(Stmt stmt) {
+        stmt.accept(this);
+    }
+
+    @Override
+    public Void visitBlockStmt(Stmt.Block stmt) {
+        executeBlock(stmt.getStatements(), new Environment(environment));
+        return null;
+    }
+
+    void executeBlock(List<Stmt> statements, Environment environment) {
+        Environment previous = this.environment;
+        try {
+        this.environment = environment;
+
+        for (Stmt statement : statements) {
+            execute(statement);
+        }
+        } finally {
+            this.environment = previous;
+        }
+    }
+
+    @Override
+    public Void visitExpressionStmt(Stmt.Expression stmt) {
+        evaluate(stmt.getExpression());
+        return null;
+    }
+
+    @Override
+    public Void visitPrintStmt(Stmt.Print stmt) {
+        Object value = evaluate(stmt.getExpression());
+        System.out.println(stringify(value));
+        return null;
+    }
+
+    @Override
+    public Void visitVarStmt(Stmt.Var stmt) {
+        Object value = null;
+        if (stmt.getInitializer() != null) {
+            value = evaluate(stmt.getInitializer());
+            // DEBUGING FEATURE: print the initializer value and type
+            // System.out.println("Initializer: " + value);
+            // System.out.println("Initializer type: " + value.getClass());
+            // System.out.println("Initializer type name: " + value.getClass().getName());
+        }
+
+        environment.define(stmt.getName().getLexeme(), value);
+
+        // DEBUGING FEATURE: print the variable name and value
+        System.out.println("Variable " + stmt.getName().getLexeme() + " = " + stringify(value) + " of type " + value.getClass().getName());
+        return null;
     }
 
     private boolean isEqual(Object left, Object right) {
@@ -148,6 +218,8 @@ public class Interpreter implements Expr.Visitor<Object> {
             }
             return text;
         }
+
+        if (object instanceof Integer) return object.toString();
 
         return object.toString();
     }

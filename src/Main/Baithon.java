@@ -4,8 +4,8 @@ import Interpreter.Interpreter;
 import Interpreter.RunTimeError;
 import Lexers.Scanner;
 import Lexers.Token;
-import Parsers.Expr;
 import Parsers.Parser;
+import Parsers.Stmt;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -65,15 +65,20 @@ public class Baithon {
     Scanner scanner = new Scanner(source);
     List<Token> tokens = scanner.scanTokens();
 
+    // debugging
+    // for (Token token : tokens) {
+      // System.out.println(token);
+    // }
+
     // Parsing
     Parser parser = new Parser(tokens);
-    Expr expression = parser.parse();
+    List<Stmt> statements = parser.parse();
 
     // if any errors were found, stop printing tokens
     if (hadError) return;
 
     // Interpret the expression
-    interpreter.interpret(expression); 
+    interpreter.interpret(statements); 
 
     // System.out.println(new AstPrinter().print(expression));
 

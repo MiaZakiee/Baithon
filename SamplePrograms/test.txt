@@ -1,5 +1,6 @@
 SUGOD
---this is a comment RAHHHHHHHHHHh
-ALANG SA
-{}
-KATAPUSAN
+    -- INTEGER
+    MUGNA 
+    MUGNA NUMERO x = 5.02
+    MUGNA NUMERO y = 6.02E23
+KATAPUSANz

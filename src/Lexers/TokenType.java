@@ -5,7 +5,7 @@ public enum TokenType {
   START, END, EOF,
 
   // Variable Declaration
-  DECLARE,
+  DECLARE, VAR,
 
   // I/O
   PRINT, SCAN,

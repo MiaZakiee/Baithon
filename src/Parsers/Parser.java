@@ -21,6 +21,7 @@ package Parsers;
 import Lexers.Token;
 import Lexers.TokenType;
 import static Lexers.TokenType.*;
+import java.util.ArrayList;
 import java.util.List;
 
 /* 
@@ -48,20 +49,141 @@ public class Parser {
 
     // Parse the tokens and return an expression
     // main function
-    public Expr parse() {
-        try {
-            return expression();
-        } catch (ParseError error) {
-            // remove this later, only for testing
-            System.out.println("Error parsing expression: " + error.getMessage());
-            return null;
+    public List<Stmt> parse() {
+        List<Stmt> statements = new ArrayList<>();
+
+        // ensure that the first token is a START token
+        if (!match(TokenType.START)) {
+            throw error(peek(), "Expect 'SUGOD' at the start of the program.");
         }
+
+        advance(); // consume START token
+
+        // parse the statements
+        while (!isAtEnd() && !check(TokenType.END)) {
+            statements.add(statement());
+        }
+
+        // ensure that the last token is an END token
+        if (!match(TokenType.END)) {
+            throw error(peek(), "Expect 'KATAPUSAN' at the end of the program.");
+        }
+        // consume END token
+        advance(); // consume END token
+
+        // check if there are tokens after the END token
+        if (!isAtEnd()) {
+            throw error(peek(), "Unexpected token after 'KATAPUSAN'.");
+        }
+
+        return statements;
     }
 
     // this function is used to parse the expression
     private Expr expression() {
-        return equality();
+        return assignment();
     }
+
+    private Stmt statement() {
+        Stmt stmt;
+
+        if (match(TokenType.PRINT)) {
+            stmt = printStatement();
+        } else if (match(TokenType.VAR)) {
+            stmt = varDeclaration();
+        } else if (match(TokenType.LEFT_BRACE)) {
+            stmt = new Stmt.Block(block());
+        } else {
+            stmt = expressionStatement();
+        }
+
+        // need new line after statement
+        if (match(TokenType.NEW_LINE) || check(TokenType.END)) {
+            return stmt;
+        } else {
+            throw error(peek(), "Expect new line after statement.");
+        }
+    }
+
+    private Stmt declaration() {
+        try {
+        if (match(DECLARE)) return varDeclaration();
+
+        return statement();
+        } catch (ParseError error) {
+            synchronize();
+            return null;
+        }
+    }
+
+    private Stmt printStatement() {
+        Expr value = expression();
+        return new Stmt.Print(value);
+    }
+
+    private Stmt varDeclaration() {
+        // need to consume data types
+        TokenType dataType = peek().getType();
+        if (dataType != INTEGER 
+        && dataType != FLOAT 
+        && dataType != CHARACTER
+        && dataType != BOOLEAN) {
+            throw error(peek(), "Invalid data type.");
+        }
+
+        advance(); // consume data type
+
+        Token name = consume(TokenType.IDENTIFIER, "Invalid variable name.");
+
+        Expr initializer = null;
+        if (match(EQUAL)) {
+            initializer = expression();
+        }
+
+        // Allow either a NEW_LINE or EOF after the declaration
+        // if (!match(TokenType.NEW_LINE) || !check(TokenType.END)) {
+            // throw error(peek(), "Expect new line after variable declaration.");
+        // }
+
+        return new Stmt.Var(name, initializer);
+    }
+
+    private Stmt expressionStatement() {
+        Expr expr = expression();
+        return new Stmt.Expression(expr);
+    }
+
+    private List<Stmt> block() {
+        List<Stmt> statements = new ArrayList<>();
+
+        while (!check(RIGHT_BRACE) && !isAtEnd()) {
+            if (match(TokenType.NEW_LINE)) continue;
+            statements.add(declaration());
+        }
+
+        consume(RIGHT_BRACE, "Expect '}' after block.");
+        return statements;
+    }
+
+
+    private Expr assignment() {
+        Expr expr = equality();
+
+        if (match(EQUAL)) {
+            Token equals = previous();
+            Expr value = assignment();
+
+            if (expr instanceof Expr.Variable) {
+                Token name = ((Expr.Variable)expr).name;
+                return new Expr.Assign(name, value);
+            }
+
+            error(equals, "Invalid assignment target."); 
+        }
+
+        return expr;
+    }
+
 
     // this function is used to parse the equality expression
     private Expr equality() {
@@ -132,7 +254,10 @@ public class Parser {
         if (match(TokenType.TRUE)) return new Expr.Literal(true);
         if (match(TokenType.NIL)) return new Expr.Literal(null);
 
-        if (match(TokenType.NUMBER, TokenType.STRING)) {
+        if (match(TokenType.INTEGER, TokenType.FLOAT)) {
+            // DEBUG FOR PARSER
+            // Object literalValue = previous().getLiteral();
+            // System.out.println("Parser literalValue: " + literalValue + " type: " + previous().getType());
             return new Expr.Literal(previous().getLiteral());
         }
 
@@ -181,7 +306,7 @@ public class Parser {
         advance();
 
         while (!isAtEnd()) {
-        if (previous().getType() == SEMICOLON) return;
+        if (previous().getType() == TokenType.NEW_LINE) return;
 
         switch (peek().getType()) {
             // TODO

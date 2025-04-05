@@ -40,7 +40,7 @@ public class Scanner {
     keywords.put("KATAPUSAN", TokenType.END);
     
     // Declaration keywords
-    keywords.put("MUGNA", TokenType.DECLARE);
+    keywords.put("MUGNA", TokenType.VAR);
     keywords.put("IPAKITA",TokenType.PRINT);
     keywords.put("DAWAT",TokenType.SCAN);
 
@@ -101,7 +101,13 @@ public class Scanner {
       case '[': addToken(LEFT_BRACKET); break;
       case ']': addToken(RIGHT_BRACKET); break;
       case ',': addToken(COMMA); break;
-      case '.': addToken(DOT); break;
+      case '.': 
+        if (Character.isDigit(peek())) {
+          number();
+        } else {
+          addToken(DOT);
+        }
+        break;
       case ';': addToken(SEMICOLON); break;
       case '/': addToken(match('=') ? DIVIDE : DIVIDE_ASSIGN); break;
       case '*': addToken(match('=') ? MULTIPLY : MULTIPLY_ASSIGN); break;
@@ -114,16 +120,23 @@ public class Scanner {
 
       // Two character tokens
       // (==, !=, <=, >=)
-      case '=': addToken(match('=') ? EQUAL : DECLARE); break;
+      case '=': addToken(match('=') ? DECLARE : EQUAL); break;
       case '!': addToken(match('=') ? NOT_EQUAL : NOT); break;
       case '<': addToken(match('=') ? LESS_EQUAL : LESS); break;
       case '>': addToken(match('=') ? GREATER_EQUAL : GREATER); break;
 
       // Whitespaces
       case ' ': break;
-      case '\r': break;
+      case '\r':
+        if (match('\n')) {
+          addToken(TokenType.NEW_LINE);
+          line++;}
+        break;
       case '\t': break;
-      case '\n': line++; break;
+      case '\n': 
+        addToken(NEW_LINE);
+        line++; 
+        break;
 
       case '-': 
         if (match('-')) { // Comments
@@ -154,22 +167,66 @@ public class Scanner {
     tokens.add(new Token(type, source.substring(start, current), null, line));
   }
 
+  // This function will add the token to the list of tokens with a literal value
+  private void addToken(TokenType type, Object literal) {
+    tokens.add(new Token(type, source.substring(start, current), literal, line));
+  }
+
   // This function will scan the number and add it to the list of tokens
+
   void number() {
-    // Consume the whole number before the decimal point
-    while (Character.isDigit(peek())) advance();
+    boolean isDouble = false;
 
-    // Look for a fractional part
-    if (peek() == '.' && Character.isDigit(peekNext())) {
-      // Consume the "."
-      advance();
+    // Check if number starts with a dot, e.g., .5
+    if (source.charAt(start) == '.' && Character.isDigit(peek())) {
+      isDouble = true;
+      while (Character.isDigit(peek())) advance();
+    } else {
+      while (Character.isDigit(peek())) advance();
 
-      // Consume the digits after the "."
+      // Check for decimal point
+      if (peek() == '.' && Character.isDigit(peekNext())) {
+        isDouble = true;
+        advance(); // consume '.'
+        while (Character.isDigit(peek())) advance();
+      }
+    }
+
+    // Check for scientific notation (e or E)
+    if (peek() == 'e' || peek() == 'E') {
+      isDouble = true;
+      advance(); // consume 'e' or 'E'
+
+      // optional sign
+      if (peek() == '+' || peek() == '-') {
+        advance();
+      }
+
+      // must have at least one digit after 'e'
+      if (!Character.isDigit(peek())) {
+        Baithon.error(line, "Invalid scientific notation: expected digit after 'e'");
+        return;
+      }
+
       while (Character.isDigit(peek())) advance();
     }
 
-    addToken(INTEGER);
+    String numberAsString = source.substring(start, current);
+    Object numberValue;
+
+    try {
+      if (isDouble) {
+        numberValue = Double.valueOf(numberAsString);
+        addToken(TokenType.FLOAT, numberValue);
+      } else {
+        numberValue = Integer.valueOf(numberAsString);
+        addToken(TokenType.INTEGER, numberValue);
+      }
+    } catch (NumberFormatException e) {
+      Baithon.error(line, "Invalid number format: " + numberAsString);
+    }
   }
+
 
   private void identifier() {
     // Consume the whole identifier/variable name

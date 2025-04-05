@@ -2,6 +2,7 @@ package Parsers;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.List;
 
 public class GenerateAst {
@@ -11,6 +12,11 @@ public class GenerateAst {
             System.exit(64);
         }
         String outputDir = args[0];
+
+        defineAst(outputDir, "Stmt", Arrays.asList(
+          "Expression : Expr expression",
+          "Print      : Expr expression"
+        ));
     }
 
     private static void defineAst(
@@ -41,6 +47,7 @@ public class GenerateAst {
         writer.println("}");
         writer.close();
     }
+
 
     private static void defineVisitor(
       PrintWriter writer, String baseName, List<String> types) {
