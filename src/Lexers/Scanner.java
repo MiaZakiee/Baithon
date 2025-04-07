@@ -48,7 +48,7 @@ public class Scanner {
     keywords.put("NUMERO", TokenType.INTEGER);
     keywords.put("LETRA", TokenType.CHARACTER);
     keywords.put("TIPIK", TokenType.FLOAT);
-    keywords.put("TINOOD", TokenType.BOOLEAN);
+    keywords.put("TINUOD", TokenType.BOOLEAN);
     // TODO: temporary word will not use string as keyword!
     keywords.put("STRING", TokenType.STRING);
 
@@ -93,16 +93,23 @@ public class Scanner {
   // This function will scan the current token
   private void scanToken() {
     char c = advance();
+    // System.out.println("scanner/scanToken: " + c);
 
     switch (c) {
       // Single Characters
-      // (,),{,},[,],.,;,/,*,+,-,%,&
+      // (,),{,},.,;,/,*,+,-,%,&
       case '(': addToken(LEFT_PAREN); break;
       case ')': addToken(RIGHT_PAREN); break;
       case '{': addToken(LEFT_BRACE); break;
       case '}': addToken(RIGHT_BRACE); break;
-      case '[': addToken(LEFT_BRACKET); break;
-      case ']': addToken(RIGHT_BRACKET); break;
+      
+      case '[':
+        if (match('#') && match(']')) { // Handle escape sequence [#]
+          addToken(TokenType.STRING, "#");
+        } else {
+          Baithon.error(line, "Unmatched escape code.");
+        }
+        break;
       case ',': addToken(COMMA); break;
       case '"':
           string();
@@ -117,6 +124,7 @@ public class Scanner {
           addToken(DOT);
         }
         break;
+      case ':': addToken(COLON); break;
       case ';': addToken(SEMICOLON); break;
       case '/': addToken(match('=') ? DIVIDE : DIVIDE_ASSIGN); break;
       case '*': addToken(match('=') ? MULTIPLY : MULTIPLY_ASSIGN); break;
@@ -124,8 +132,8 @@ public class Scanner {
       case '+': addToken(match('=') ? PLUS : PLUS_ASSIGN); break;
 
       // Bisaya++ thing
-      case '&': addToken(NEW_LINE);
-      case '$': addToken(CONCAT);
+      case '&': addToken(CONCAT); break;
+      case '$': addToken(NEW_LINE_LITERAL); break;
 
       // Two character tokens
       // (==, !=, <=, >=)
@@ -171,18 +179,24 @@ public class Scanner {
         } else if (Character.isLetter(c)) {
           identifier();
         } else {
-          Baithon.error(line, "Unexpected character.");
+          Baithon.error(line, "Unexpected character: " + c);
         }     
     }
   }
 
+  private char getCurrCharThenNext() {
+    return source.charAt(current++);
+  }
+
   // This function will add the token to the list of tokens
   private void addToken(TokenType type) {
+    // System.out.println("scanner/addToken: " + type);
     tokens.add(new Token(type, source.substring(start, current), null, line));
   }
 
   // This function will add the token to the list of tokens with a literal value
   private void addToken(TokenType type, Object literal) {
+    // System.out.println("scanner/addToken: " + type + " " + literal);
     tokens.add(new Token(type, source.substring(start, current), literal, line));
   }
 
@@ -227,7 +241,7 @@ public class Scanner {
     String value = source.substring(start + 1, current - 1);
     addToken(TokenType.STRING, value);
     // debugging
-    System.out.println("scanner/string: " + value);
+    // System.out.println("scanner/string: " + value);
   }
 
   // This function will scan the number and add it to the list of tokens

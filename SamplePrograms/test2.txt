@@ -1,3 +1,4 @@
+-- test
 SUGOD
     -- Test Case 1: Single Variable Declaration with Initializer
     MUGNA NUMERO x = 5
@@ -20,7 +21,7 @@ SUGOD
     -- Test Case 5: Mixed Initializers in Multiple Declarations 
     MUGNA NUMERO m = 5, n, o = 10
     -- Test Case 6: Invalid Data Type
-    -- OK NA MUGNA INVALID_TYPE invalidVar = 5
+    -- MUGNA INVALID_TYPE invalidVar = 5
     -- Test Case 7: Missing Variable Name
     -- OK NA MUGNA NUMERO = 5
     -- Test Case 8: Missing Initializer After `=`
@@ -34,4 +35,5 @@ SUGOD
     MUGNA NUMERO u, v, w
     -- Test Case 12: Multiple Declarations with Mixed Initializers (Valid)
     MUGNA NUMERO x3 = 5, y3 = 10, z3 = 15
+    w = 69
 KATAPUSAN

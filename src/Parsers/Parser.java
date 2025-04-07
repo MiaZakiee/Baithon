@@ -52,6 +52,11 @@ public class Parser {
     public List<Stmt> parse() {
         List<Stmt> statements = new ArrayList<>();
 
+        // consume new lines
+        while (match(TokenType.NEW_LINE)) {
+            // skip new lines
+        }
+
         // ensure that the first token is a START token
         if (!match(TokenType.START)) {
             throw error(peek(), "Expect 'SUGOD' at the start of the program.");
@@ -86,6 +91,8 @@ public class Parser {
     }
 
     private Stmt statement() {
+        // System.out.println("Parser: parsing statement at token: " + peek().getLexeme());
+
         Stmt stmt;
 
         if (match(TokenType.PRINT)) {
@@ -117,7 +124,21 @@ public class Parser {
     }
 
     private Stmt printStatement() {
+        consume(TokenType.COLON, "Expect ':' after 'IPAKITA'.");
+        // System.out.println("Parser: print statement");
         Expr value = expression();
+
+        while (match(TokenType.NEW_LINE_LITERAL) || match(TokenType.CONCAT)) {
+            Token operator = previous();
+
+            Expr right;
+            if (operator.getType() == TokenType.NEW_LINE_LITERAL) {
+                right = new Expr.Literal('\n');
+            } else {
+                right = expression();
+            }
+            value = new Expr.Binary(value, operator, right);
+        }
         return new Stmt.Print(value);
     }
 
@@ -185,16 +206,14 @@ public class Parser {
         return statements;
     }
 
-
     private Expr assignment() {
         Expr expr = equality();
+        // System.out.println("Parser: left side of assignment: " + expr);
 
         if (match(EQUAL)) {
             Token equals = previous();
-            if (check(TokenType.NEW_LINE) || check(TokenType.END)) {
-                throw error(equals, "Missing initializer after '='.");
-            }
             Expr value = assignment();
+            // System.out.println("Parser: right side of assignment: " + value);
 
             if (expr instanceof Expr.Variable) {
                 Token name = ((Expr.Variable)expr).name;
@@ -278,10 +297,18 @@ public class Parser {
         if (match(TokenType.NIL)) return new Expr.Literal(null);
 
         if (match(TokenType.INTEGER, TokenType.FLOAT, TokenType.CHARACTER, TokenType.STRING)) {
-            // DEBUG FOR PARSER
-            // Object literalValue = previous().getLiteral();
-            // System.out.println("Parser literalValue: " + literalValue + " type: " + previous().getType());
+            // Return a literal expression for numbers, strings, etc.
             return new Expr.Literal(previous().getLiteral());
+        }
+
+        if (match(TokenType.NEW_LINE_LITERAL)) {
+            // Return a literal expression for new line
+            return new Expr.Literal('\n');
+        }
+
+        if (match(TokenType.IDENTIFIER)) {
+            // Return a variable expression for identifiers
+            return new Expr.Variable(previous());
         }
 
         if (match(TokenType.LEFT_PAREN)) {
@@ -289,6 +316,19 @@ public class Parser {
             consume(TokenType.RIGHT_PAREN, "Expect ')' after expression.");
             return new Expr.Grouping(expr);
         }
+
+        // if (match(TokenType.INTEGER, TokenType.FLOAT, TokenType.CHARACTER, TokenType.STRING)) {
+        //     // DEBUG FOR PARSER
+        //     // Object literalValue = previous().getLiteral();
+        //     // System.out.println("Parser literalValue: " + literalValue + " type: " + previous().getType());
+        //     return new Expr.Literal(previous().getLiteral());
+        // }
+
+        // if (match(TokenType.LEFT_PAREN)) {
+        //     Expr expr = expression();
+        //     consume(TokenType.RIGHT_PAREN, "Expect ')' after expression.");
+        //     return new Expr.Grouping(expr);
+        // }
 
         throw error(peek(), "Expect expression.");
     }

@@ -36,6 +36,7 @@ public class Environment {
     public void assign(Token name, Object value) {
         if (values.containsKey(name.getLexeme())) {
             values.put(name.getLexeme(), value);
+            // System.out.println("Environment: update " + name.getLexeme() + " to " + value);
             return;
         }
 

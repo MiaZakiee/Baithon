@@ -25,9 +25,9 @@ public class Interpreter implements Expr.Visitor<Object>
 
     @Override
     public Object visitAssignExpr(Expr.Assign expr) {
-        Object value = evaluate(expr.getValue());
-        environment.assign(expr.getName(), value);
-        return value;
+        Object value = evaluate(expr.getValue());  // Evaluate the value of the expression
+        environment.assign(expr.getName(), value); // Assign the value to the variable
+        return value; // Return the value
     }
 
     public void interpret(List<Stmt> statements) {
@@ -83,6 +83,8 @@ public class Interpreter implements Expr.Visitor<Object>
                     return (char) ((Character) left + (Character) right);
                 }
                 throw new RunTimeError(expr.getOperator(), "Operands must be two strings or two numbers.");
+            case CONCAT:
+                return stringify(left) + stringify(right);
             case MINUS:
                 checkNumberOperands(expr.getOperator(), left, right);
                 return (double) left - (double) right;
@@ -111,6 +113,11 @@ public class Interpreter implements Expr.Visitor<Object>
                 return isEqual(left, right);
             case NOT_EQUAL:
                 return !isEqual(left, right);
+            case NEW_LINE:
+                // System.out.print("Stringify NEW_LINE: " + stringify(left) + stringify(right));
+                String leftString = stringify(left).stripTrailing();
+                String rightString = stringify(right).stripLeading();
+                return leftString + rightString;
         }
         return null;
     }
@@ -157,6 +164,12 @@ public class Interpreter implements Expr.Visitor<Object>
             if (initializer != null) {
                 value = evaluate(initializer);
 
+                // Convert "OO" and "DILI" to boolean if the declared type is BOOLEAN
+                if (declaredType == TokenType.BOOLEAN && value instanceof String) {
+                    if (value.equals("OO")) value = true;
+                    if (value.equals("DILI")) value = false;
+                }
+
                 // Debugging
                 // System.out.println("Interpretter: declared type: " + declaredType);
                 // System.out.println("Interpretter: initializer value: " + value);
@@ -172,9 +185,9 @@ public class Interpreter implements Expr.Visitor<Object>
 
             // DEBUGING FEATURE: print the variable name and value
             try {
-                System.out.println("Variable " + name.getLexeme() + " = " + stringify(value) + " of type " + value.getClass().getName());
+                // System.out.println("Variable " + name.getLexeme() + " = " + stringify(value) + " of type " + value.getClass().getName());
             } catch (NullPointerException e) {
-                System.out.println("null variable");
+                // System.out.println("null variable: " + name.getLexeme());
             }
         }
         return null;
@@ -183,7 +196,10 @@ public class Interpreter implements Expr.Visitor<Object>
     // Helper functions -----------------------------------------------------
 
     private Object evaluate(Expr expr) {
-        return expr.accept(this);
+        // System.out.println("Evaluating expression: " + expr.getClass().getSimpleName());
+        Object result = expr.accept(this);
+        // System.out.println("Result: " + result + " (Type: " + (result != null ? result.getClass().getName() : "null") + ")");
+        return result;
     }
 
     private Object evaluate(List<Expr> expressions) {
@@ -226,16 +242,37 @@ public class Interpreter implements Expr.Visitor<Object>
     @Override
     public Void visitPrintStmt(Stmt.Print stmt) {
         Object value = evaluate(stmt.getExpression());
-        System.out.println(stringify(value));
+        
+        String result = stringify(value);
+
+        // System.out.println("Print statement: " + result);
+
+        result = result
+            .replace("&", "")
+            .replace("$", "\n")
+            .replace("[$]", "#");
+
+        System.out.print(result + "\n");
+
         return null;
     }
 
+    // this function is kinda useless kay murag adto tanan mo agi sa visitMultiVar
     @Override
     public Void visitVarStmt(Stmt.Var stmt) {
         Object value = null;
+        
+        // debug
+        // System.out.println("Interpretter: VarStmt: " + stmt.getInitializer());
 
         if (stmt.getInitializer() != null) {
             value = evaluate(stmt.getInitializer());
+
+            // Convert "OO" and "DILI" to boolean if the declared type is BOOLEAN
+            if (stmt.getDeclaredType() == TokenType.BOOLEAN && value instanceof String) {
+                if (value.equals("OO")) value = true;
+                if (value.equals("DILI")) value = false;
+            }
 
             // Debugging
             System.out.println("Interpretter: declared type: " + stmt.getDeclaredType());
@@ -273,7 +310,7 @@ public class Interpreter implements Expr.Visitor<Object>
             default -> false;
         };
 
-        System.out.println("isTypeCompatible: Declared type: " + declaredType + ", Value type: " + (value != null ? value.getClass().getName() : "null") + ", Result: " + result);
+        // System.out.println("isTypeCompatible: Declared type: " + declaredType + ", Value type: " + (value != null ? value.getClass().getName() : "null") + ", Result: " + result);
         return result;
     }
 
@@ -284,19 +321,22 @@ public class Interpreter implements Expr.Visitor<Object>
     }
 
     private String stringify(Object object) {
+        // System.out.println("Stringifying object: " + object + " (Type: " + (object != null ? object.getClass().getName() : "null") + ")");
+
         if (object == null) return "nil";
+
+        // maybe change this to OO or DILI??
+        if (object instanceof Boolean) return (boolean) object ? "true" : "false";
 
         if (object instanceof Double) {
             String text = object.toString();
             if (text.endsWith(".0")) {
-                text = text.substring(0, text.length() - 2);
+                text = text.substring(0, text.length() - 2); // remove trailing ".0"
             }
             return text;
         }
 
         if (object instanceof Integer) return object.toString();
-
-        if (object instanceof Boolean) return (boolean) object ? "true" : "false";
         if (object instanceof Character) return object.toString();
         if (object instanceof String) return (String) object;
 

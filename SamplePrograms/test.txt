@@ -1,4 +1,11 @@
+-- this is a sample program in Bisaya++
+-- & Concat
+-- $ New line
 SUGOD
-    MUGNA STRING x = "OOs"
-    MUGNA TINOOD hmmm = "OOs"
+    MUGNA NUMERO x = 4, y = 5, z = 6
+    MUGNA LETRA a = 'c'
+    MUGNA TINUOD t = "OO"
+    IPAKITA: x & t & z & $ & a & [#] & "last"
+    MUGNA STRING yawa = "yawa kaaaaaaaaaaaaaaaaaa" -- test here
+    IPAKITA: yawa
 KATAPUSAN

@@ -60,31 +60,42 @@ public class Baithon {
     if (hadError) System.exit(65);
     if (hadRuntimeError) System.exit(70);
     
-    // Lexical Analysis
-    Scanner scanner = new Scanner(source);
-    List<Token> tokens = scanner.scanTokens();
 
-    // debugging
-    // for (Token token : tokens) {
-    //   System.out.println(token);
-    // }
+    // try {
+      // Lexical Analysis
+      Scanner scanner = new Scanner(source);
+      List<Token> tokens = scanner.scanTokens();
+  
+      // debugging
+      // for (Token token : tokens) {
+      //   System.out.println(token);
+      // }
+  
+      // Parsing
+      Parser parser = new Parser(tokens);
+      List<Stmt> statements = parser.parse();
 
-    // Parsing
-    Parser parser = new Parser(tokens);
-    List<Stmt> statements = parser.parse();
+      // Print the AST
+      // for (Stmt statement : statements) {
+        // System.out.println("Parsed statement: " + statement.toString());
+      // }
 
-    // if any errors were found, stop printing tokens
-    if (hadError) return;
-
-    // Interpret the expression
-    interpreter.interpret(statements); 
-
-    // System.out.println(new AstPrinter().print(expression));
-
-    // Print tokens
-    // for (Token token : tokens) {
-      // System.out.println(token);
-    // }
+      // if any errors were found, stop printing tokens
+      if (hadError) return;
+  
+      // Interpret the expression
+      interpreter.interpret(statements); 
+  
+      // System.out.println(new AstPrinter().print(expression));
+  
+      // Print tokens
+      // for (Token token : tokens) {
+        // System.out.println(token);
+      // }
+    // } catch (Exception e) {
+      // Handle any exceptions that occur during parsing or interpretation
+      // System.err.println("An error occurred: " + e.getMessage());
+    // }    
   }
 
   public static void error(int line, String message) {
