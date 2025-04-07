@@ -5,7 +5,5 @@ SUGOD
     MUGNA NUMERO x = 4, y = 5, z = 6
     MUGNA LETRA a = 'c'
     MUGNA TINUOD t = "OO"
-    IPAKITA: x & t & z & $ & a & [#] & "last"
-    MUGNA STRING yawa = "yawa kaaaaaaaaaaaaaaaaaa" -- test here
-    IPAKITA: yawa
+    IPAKITA: x & t & z & $ & a & [t] & "last" & $ & "yeah" 
 KATAPUSAN

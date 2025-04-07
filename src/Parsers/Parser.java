@@ -317,19 +317,6 @@ public class Parser {
             return new Expr.Grouping(expr);
         }
 
-        // if (match(TokenType.INTEGER, TokenType.FLOAT, TokenType.CHARACTER, TokenType.STRING)) {
-        //     // DEBUG FOR PARSER
-        //     // Object literalValue = previous().getLiteral();
-        //     // System.out.println("Parser literalValue: " + literalValue + " type: " + previous().getType());
-        //     return new Expr.Literal(previous().getLiteral());
-        // }
-
-        // if (match(TokenType.LEFT_PAREN)) {
-        //     Expr expr = expression();
-        //     consume(TokenType.RIGHT_PAREN, "Expect ')' after expression.");
-        //     return new Expr.Grouping(expr);
-        // }
-
         throw error(peek(), "Expect expression.");
     }
 

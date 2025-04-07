@@ -83,13 +83,11 @@ public class Interpreter implements Expr.Visitor<Object>
                     return (char) ((Character) left + (Character) right);
                 }
                 throw new RunTimeError(expr.getOperator(), "Operands must be two strings or two numbers.");
-            case CONCAT:
-                return stringify(left) + stringify(right);
-            case MINUS:
+                case MINUS:
                 checkNumberOperands(expr.getOperator(), left, right);
                 return (double) left - (double) right;
             case MULTIPLY:
-                checkNumberOperands(expr.getOperator(), left, right);
+            checkNumberOperands(expr.getOperator(), left, right);
                 return (double) left * (double) right;
             case DIVIDE:
                 checkNumberOperands(expr.getOperator(), left, right);
@@ -97,31 +95,40 @@ public class Interpreter implements Expr.Visitor<Object>
             case MODULO:
                 checkNumberOperands(expr.getOperator(), left, right);
                 return (double) left % (double) right;
-            case GREATER:
+                case GREATER:
                 checkNumberOperands(expr.getOperator(), left, right);
                 return (double) left > (double) right;
             case GREATER_EQUAL:
-                checkNumberOperands(expr.getOperator(), left, right);
+            checkNumberOperands(expr.getOperator(), left, right);
                 return (double) left >= (double) right;
             case LESS:
                 checkNumberOperands(expr.getOperator(), left, right);
                 return (double) left < (double) right;
-            case LESS_EQUAL:
+                case LESS_EQUAL:
                 checkNumberOperands(expr.getOperator(), left, right);
                 return (double) left <= (double) right;
-            case EQUAL:
+                case EQUAL:
                 return isEqual(left, right);
             case NOT_EQUAL:
                 return !isEqual(left, right);
+            case CONCAT:
+                return stringify(left) + stringify(right);
             case NEW_LINE:
                 // System.out.print("Stringify NEW_LINE: " + stringify(left) + stringify(right));
                 String leftString = stringify(left).stripTrailing();
                 String rightString = stringify(right).stripLeading();
                 return leftString + rightString;
-        }
+            case ESCAPE:
+                // Insert the escape sequence literal between left and right parts.
+                String escapeValue = expr.getOperator().getLiteral() != null
+                ? (String) expr.getOperator().getLiteral()
+                : ""; // default to "&" if none provided
+                return stringify(left) + escapeValue + stringify(right);
+                
+            }
         return null;
     }
-
+    
     
     @Override
     public Object visitLiteralExpr(Expr.Literal expr) {
@@ -247,10 +254,9 @@ public class Interpreter implements Expr.Visitor<Object>
 
         // System.out.println("Print statement: " + result);
 
-        result = result
-            .replace("&", "")
-            .replace("$", "\n")
-            .replace("[$]", "#");
+        // result = result
+            // .replace("&", "") // concat remove &
+            // .replace("$", "\n"); // new line
 
         System.out.print(result + "\n");
 

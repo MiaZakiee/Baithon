@@ -68,7 +68,7 @@ public class Baithon {
   
       // debugging
       // for (Token token : tokens) {
-      //   System.out.println(token);
+        // System.out.println("Baithon found: " + token);
       // }
   
       // Parsing

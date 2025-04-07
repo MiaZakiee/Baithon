@@ -102,12 +102,44 @@ public class Scanner {
       case ')': addToken(RIGHT_PAREN); break;
       case '{': addToken(LEFT_BRACE); break;
       case '}': addToken(RIGHT_BRACE); break;
-      
       case '[':
-        if (match('#') && match(']')) { // Handle escape sequence [#]
-          addToken(TokenType.STRING, "#");
+        StringBuilder escapeContent = new StringBuilder();
+        while (!isAtEnd() && peek() != ']') {
+            escapeContent.append(advance());
+        }
+
+        if (peek() == ']') {
+            advance(); // Consume the closing bracket
+            String content = escapeContent.toString();
+
+            // more than one character == bad
+            if (content.length() > 1) {
+                Baithon.error(line, "Invalid escape sequence: " + content);
+                return;
+            }
+
+            // Handle special case for `[]]` as a literal `]`
+            if (content.isEmpty() && peek() == ']') {
+                advance(); // Consume the second `]`
+                addToken(TokenType.STRING, "]"); // Treat it as a literal `]`
+            } else {
+                // Handle the escape sequence
+                // For example, if the escape sequence is `\n`, treat it as a newline character
+                switch (content) {
+                    case "n":
+                        content = "\n"; // Newline
+                        break;
+                    case "t":
+                        content = "\t"; // Tab
+                        break;
+                    case "r":
+                        content = "\r"; // Carriage return
+                        break;
+                }
+                addToken(TokenType.STRING, content); // Treat the content as a STRING token
+            }
         } else {
-          Baithon.error(line, "Unmatched escape code.");
+            Baithon.error(line, "Unterminated escape sequence. Missing ']'.");
         }
         break;
       case ',': addToken(COMMA); break;
