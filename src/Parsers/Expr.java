@@ -12,6 +12,9 @@
  * - Logical: Represents a logical expression. X && Y, X || Y, etc.
  * - Unary: Represents a unary expression. -X, !X, etc.
  * - Variable: Represents a variable expression. X, Y, etc.
+ * 
+ *  A visitor pattern is a pattern that lets you separate an algorithm from the object structure on which it operates.
+ *  basically, it allows you to add new operations to existing object structures without modifying those structures.
  */
 package Parsers;
 
@@ -28,6 +31,7 @@ abstract public class Expr {
         R visitLiteralExpr(Literal expr);
         R visitLogicalExpr(Logical expr);
         R visitVariableExpr(Variable expr);
+        R visitIncrementOrDecrementExpr(IncrementOrDecrement expr);
     }
 
     public abstract  <R> R accept(Visitor<R> visitor);
@@ -201,6 +205,37 @@ abstract public class Expr {
         // getter
         public Token getName() {
             return name;
+        }
+    }
+
+    // Increment or Decrement expression
+    // This is used to represent increment or decrement operations
+    public static class IncrementOrDecrement extends Expr {
+        final Token operator;
+        final Expr.Variable variable;
+        final boolean isPrefix;
+
+        public IncrementOrDecrement(Token operator, Expr.Variable variable, boolean isPrefix) {
+            this.operator = operator;
+            this.variable = variable;
+            this.isPrefix = isPrefix;
+        }
+
+        @Override
+        public <R> R accept(Visitor<R> visitor) {
+            return visitor.visitIncrementOrDecrementExpr(this);
+        }
+
+        // getters
+        public Token getOperator() {
+            return operator;
+        }
+        public Variable getVariable() {
+            return variable;
+        }
+
+        public boolean isPrefix() {
+            return isPrefix;
         }
     }
 }

@@ -1,0 +1,79 @@
+-- Combined operation tests for Baithon
+
+SUGOD
+    -- Simple Assignment
+    MUGNA NUMERO x = 5
+    IPAKITA: "Simple Assignment: " & x
+
+    -- Reassignment
+    x = 10
+    IPAKITA: "Reassignment: " & x
+
+    -- Compound Assignment (Addition)
+    x += 3
+    IPAKITA: "Compound Addition: " & x
+
+    -- Compound Assignment (Subtraction)
+    x -= 2
+    IPAKITA: "Compound Subtraction: " & x
+
+    -- Compound Assignment (Multiplication)
+    x *= 4
+    IPAKITA: "Compound Multiplication: " & x
+
+    -- Compound Assignment (Division)
+    x /= 2
+    IPAKITA: "Compound Division: " & x
+
+    -- Compound Assignment (Modulo)
+    x %= 3
+    IPAKITA: "Compound Modulo: " & x
+
+    -- Assignment with Expressions
+    MUGNA NUMERO y = 20
+    x = x + y
+    IPAKITA: "Assignment with Expression: " & x
+
+    -- Chained Assignment
+    x = y = 15
+    IPAKITA: "Chained Assignment x: " & x
+    IPAKITA: "Chained Assignment y: " & y
+
+    -- Invalid Assignment Target (should throw an error)
+    -- 5 = x
+
+    -- Invalid Compound Assignment Target
+    -- "Hello" += 5
+
+    -- Invalid Reassignment of Undeclared Variable
+    -- z = 10
+
+    -- Invalid Type Assignment
+    -- MUGNA NUMERO a = "String instead of number"
+    -- IPAKITA: "Invalid Type Assignment: " & a
+
+    -- Invalid Compound Assignment with Type Mismatch
+    -- MUGNA STRING b = "Hello"
+    -- b += 5
+    -- IPAKITA: "Invalid Compound Assignment: " & b
+
+    -- Invalid Increment on Non-Numeric Variable
+    -- MUGNA STRING c = "World"
+    -- c++
+    -- IPAKITA: "Invalid Increment: " & c
+
+    -- Invalid Decrement on Non-Numeric Variable
+    -- c--
+    -- IPAKITA: "Invalid Decrement: " & c
+
+    -- Invalid Use of Undefined Variable
+    -- IPAKITA: "Undefined Variable: " & d
+
+    -- Invalid Use of Reserved Keyword as Variable Name
+    MUGNA NUMERO DAWAT = 10
+
+    -- Unterminated Block
+    SUGOD
+         MUGNA NUMERO e = 5
+
+KATAPUSAN

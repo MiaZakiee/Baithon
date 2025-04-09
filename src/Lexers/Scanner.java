@@ -32,7 +32,7 @@ public class Scanner {
   private final List<Token> tokens = new ArrayList<>();
 
   // This is the reserved keywords in the language
-  private static final Map<String, TokenType> keywords;
+  public static final Map<String, TokenType> keywords;
   static {
     keywords = new HashMap<>();
     // Start and End keywords
@@ -158,10 +158,18 @@ public class Scanner {
         break;
       case ':': addToken(COLON); break;
       case ';': addToken(SEMICOLON); break;
-      case '/': addToken(match('=') ? DIVIDE : DIVIDE_ASSIGN); break;
-      case '*': addToken(match('=') ? MULTIPLY : MULTIPLY_ASSIGN); break;
-      case '%': addToken(match('=') ? MODULO : MODULO_ASSIGN); break;
-      case '+': addToken(match('=') ? PLUS : PLUS_ASSIGN); break;
+      case '/': addToken(match('=') ? DIVIDE_ASSIGN : DIVIDE); break;
+      case '*': addToken(match('=') ? MULTIPLY_ASSIGN : MULTIPLY); break;
+      case '%': addToken(match('=') ? MODULO_ASSIGN : MODULO); break;
+      case '+': 
+        if (match('+')) {
+          addToken(INCREMENT);
+        } else if (match('=')) {
+          addToken(PLUS_ASSIGN);
+        } else {
+          addToken(PLUS);
+        }
+        break;
 
       // Bisaya++ thing
       case '&': addToken(CONCAT); break;
@@ -214,10 +222,6 @@ public class Scanner {
           Baithon.error(line, "Unexpected character: " + c);
         }     
     }
-  }
-
-  private char getCurrCharThenNext() {
-    return source.charAt(current++);
   }
 
   // This function will add the token to the list of tokens
@@ -350,7 +354,6 @@ public class Scanner {
       addToken(type);
       return;
     } 
-
 
     // If the identifier has a space in it, we need to check if the next character is a space
     // and if it is, we need to consume it

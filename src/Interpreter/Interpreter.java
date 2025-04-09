@@ -26,7 +26,24 @@ public class Interpreter implements Expr.Visitor<Object>
     @Override
     public Object visitAssignExpr(Expr.Assign expr) {
         Object value = evaluate(expr.getValue());  // Evaluate the value of the expression
-        environment.assign(expr.getName(), value); // Assign the value to the variable
+        Token variableName = expr.getName(); // Get the variable name
+
+        // get current value
+        Object currentValue = environment.get(variableName); // Get the current value of the variable
+
+        // check if the variable is already defined
+        if (currentValue == null) {
+            throw new RunTimeError(variableName, "Variable '" + variableName.getLexeme() + "' is not defined.");
+        }
+
+        // Check type compatibility
+        if (!isTypeCompatible(variableName.getType(), value)) {
+            throw new RunTimeError(variableName, "Type mismatch for variable '" + variableName.getLexeme() + "'.");
+        }
+
+        // Assign the value to the variable
+        environment.assign(variableName, value);
+        
         return value; // Return the value
     }
 
@@ -46,12 +63,20 @@ public class Interpreter implements Expr.Visitor<Object>
 
         switch (expr.getOperator().getType()) {
             case MINUS:
+                checkNumberOperand(expr.getOperator(), right);
                 return -(double) right;
             case NOT:
                 return !(boolean) isTruthy(right);
         }
 
+
+
         return null;
+    }
+
+    private void checkNumberOperand(Token operator, Object operand) {
+        if (operand instanceof Number) return;
+        throw new RunTimeError(operator, "Operand must be a number.");
     }
 
     private boolean isTruthy(Object object) {
@@ -65,49 +90,29 @@ public class Interpreter implements Expr.Visitor<Object>
         Object left = evaluate(expr.getLeft());
         Object right = evaluate(expr.getRight());
 
+        // Left     Right   Result
+        // Integer	Integer	Integer
+        // Integer	Double	Double
+        // Double	Integer	Double
+        // Double	Double	Double
+
         switch (expr.getOperator().getType()) {
             case PLUS:
-                if (left instanceof String && right instanceof String) {
+                if (left instanceof String || right instanceof String) {
+                    if (!(left instanceof String) || !(right instanceof String)) {
+                        throw new RunTimeError(expr.getOperator(),
+                        "Type mismatch: Cannot concatenate " + left.getClass().getSimpleName() +
+                        " with " + right.getClass().getSimpleName());
+                    }
                     return (String) left + (String) right;
-                }
-                if (left instanceof String && right instanceof Number) {
-                    return (String) left + right.toString();
-                }
-                if (left instanceof Number && right instanceof String) {
-                    return left.toString() + (String) right;
-                }
-                if (left instanceof Number && right instanceof Number) {
-                    return (double) left + (double) right;
                 }
                 if (left instanceof Character && right instanceof Character) {
                     return (char) ((Character) left + (Character) right);
                 }
-                throw new RunTimeError(expr.getOperator(), "Operands must be two strings or two numbers.");
-                case MINUS:
-                checkNumberOperands(expr.getOperator(), left, right);
-                return (double) left - (double) right;
-            case MULTIPLY:
-            checkNumberOperands(expr.getOperator(), left, right);
-                return (double) left * (double) right;
-            case DIVIDE:
-                checkNumberOperands(expr.getOperator(), left, right);
-                return (double) left / (double) right;
-            case MODULO:
-                checkNumberOperands(expr.getOperator(), left, right);
-                return (double) left % (double) right;
-                case GREATER:
-                checkNumberOperands(expr.getOperator(), left, right);
-                return (double) left > (double) right;
-            case GREATER_EQUAL:
-            checkNumberOperands(expr.getOperator(), left, right);
-                return (double) left >= (double) right;
-            case LESS:
-                checkNumberOperands(expr.getOperator(), left, right);
-                return (double) left < (double) right;
-                case LESS_EQUAL:
-                checkNumberOperands(expr.getOperator(), left, right);
-                return (double) left <= (double) right;
-                case EQUAL:
+                return numberArithmetic(left, right, expr.getOperator().getType());
+            case MINUS,MULTIPLY,DIVIDE,MODULO,GREATER,GREATER_EQUAL,LESS,LESS_EQUAL:
+                return numberArithmetic(left, right, expr.getOperator().getType());
+            case EQUAL:
                 return isEqual(left, right);
             case NOT_EQUAL:
                 return !isEqual(left, right);
@@ -124,9 +129,9 @@ public class Interpreter implements Expr.Visitor<Object>
                 ? (String) expr.getOperator().getLiteral()
                 : ""; // default to "&" if none provided
                 return stringify(left) + escapeValue + stringify(right);
-                
+            default:
+                throw new RunTimeError(expr.getOperator(), "Unknown operator: " + expr.getOperator().getLexeme());
             }
-        return null;
     }
     
     
@@ -177,6 +182,10 @@ public class Interpreter implements Expr.Visitor<Object>
                     if (value.equals("DILI")) value = false;
                 }
 
+                if (!isTypeCompatible(declaredType, value)) {
+                    throw new RunTimeError(name,"Type mismatch for variable '" + name.getLexeme() + "'.");
+                }
+
                 // Debugging
                 // System.out.println("Interpretter: declared type: " + declaredType);
                 // System.out.println("Interpretter: initializer value: " + value);
@@ -200,7 +209,89 @@ public class Interpreter implements Expr.Visitor<Object>
         return null;
     }
 
+    @Override
+    public Object visitIncrementOrDecrementExpr(Expr.IncrementOrDecrement expr) {
+        Token variableToken = expr.getVariable().getName();
+        Object value = environment.get(variableToken);
+
+        if (!(value instanceof Integer || value instanceof Double)) {
+            throw new RunTimeError(variableToken, "Variable must be a number.");
+        }
+
+        Object newValue;
+        if (expr.getOperator().getType() == TokenType.INCREMENT) {
+            newValue = (value instanceof Integer) ?
+                (Integer) value + 1 :
+                (Double) value + 1.0;
+        } else if (expr.getOperator().getType() == TokenType.DECREMENT) {
+            newValue = (value instanceof Integer) ?
+                (Integer) value - 1 :
+                (Double) value - 1.0;
+        } else {
+            throw new RunTimeError(variableToken, "Invalid increment/decrement operator.");
+        }
+
+        // update the variable in the environment
+        environment.assign(variableToken, newValue);
+
+        return expr.isPrefix() ? newValue : value;
+    }
+
     // Helper functions -----------------------------------------------------
+
+    // Used for type fidelity
+    private Object numberArithmetic(Object left, Object right, TokenType operator) {
+        boolean leftIsInt = left instanceof Integer;
+        boolean rightIsInt = right instanceof Integer;
+        boolean leftIsDouble = left instanceof Double;
+        boolean rightIsDouble = right instanceof Double;
+
+        if (!(left instanceof Number) || !(right instanceof Number)) {
+            throw new RunTimeError(null, "Operands must be numbers.");
+        }
+
+        // Integer + Integer = Integer
+        if (leftIsInt && rightIsInt) {
+            int l = (int) left;
+            int r = (int) right;
+            return switch (operator) {
+                case PLUS -> l + r;
+                case MINUS -> l - r;
+                case MULTIPLY -> l * r;
+                case DIVIDE -> l / r;
+                case MODULO -> l % r;
+                case GREATER -> l > r;
+                case GREATER_EQUAL -> l >= r;
+                case LESS -> l < r;
+                case LESS_EQUAL -> l <= r;
+                default -> throw new RunTimeError(null, "Unsupported operator for integers.");
+            };
+        }
+
+        // Otherwise, convert both to double
+        double l = toDouble(left);
+        double r = toDouble(right);
+        return switch (operator) {
+            case PLUS -> l + r;
+            case MINUS -> l - r;
+            case MULTIPLY -> l * r;
+            case DIVIDE -> l / r;
+            case MODULO -> l % r;
+            case GREATER -> l > r;
+            case GREATER_EQUAL -> l >= r;
+            case LESS -> l < r;
+            case LESS_EQUAL -> l <= r;
+            default -> throw new RunTimeError(null, "Unsupported operator for doubles.");
+        };
+    }
+
+    private double toDouble(Object number) {
+        if (number instanceof Integer) return ((Integer) number).doubleValue();
+        if (number instanceof Double) return (Double) number;
+        throw new RuntimeException("Expected number, got: " + number.getClass().getSimpleName());
+    }
+
+
 
     private Object evaluate(Expr expr) {
         // System.out.println("Evaluating expression: " + expr.getClass().getSimpleName());
@@ -264,43 +355,43 @@ public class Interpreter implements Expr.Visitor<Object>
     }
 
     // this function is kinda useless kay murag adto tanan mo agi sa visitMultiVar
-    @Override
-    public Void visitVarStmt(Stmt.Var stmt) {
-        Object value = null;
+    // @Override
+    // public Void visitVarStmt(Stmt.Var stmt) {
+    //     Object value = null;
         
-        // debug
-        // System.out.println("Interpretter: VarStmt: " + stmt.getInitializer());
+    //     // debug
+    //     // System.out.println("Interpretter: VarStmt: " + stmt.getInitializer());
 
-        if (stmt.getInitializer() != null) {
-            value = evaluate(stmt.getInitializer());
+    //     if (stmt.getInitializer() != null) {
+    //         value = evaluate(stmt.getInitializer());
 
-            // Convert "OO" and "DILI" to boolean if the declared type is BOOLEAN
-            if (stmt.getDeclaredType() == TokenType.BOOLEAN && value instanceof String) {
-                if (value.equals("OO")) value = true;
-                if (value.equals("DILI")) value = false;
-            }
+    //         // Convert "OO" and "DILI" to boolean if the declared type is BOOLEAN
+    //         if (stmt.getDeclaredType() == TokenType.BOOLEAN && value instanceof String) {
+    //             if (value.equals("OO")) value = true;
+    //             if (value.equals("DILI")) value = false;
+    //         }
 
-            // Debugging
-            System.out.println("Interpretter: declared type: " + stmt.getDeclaredType());
-            System.out.println("Interpretter: initializer value: " + value);
-            System.out.println("Interpretter: initializer type: " + value.getClass().getName());
+    //         // Debugging
+    //         System.out.println("Interpretter: declared type: " + stmt.getDeclaredType());
+    //         System.out.println("Interpretter: initializer value: " + value);
+    //         System.out.println("Interpretter: initializer type: " + value.getClass().getName());
 
-            TokenType declaredType = stmt.getDeclaredType();
-            if (!isTypeCompatible(declaredType, value)) {
-                throw new RunTimeError(stmt.getName(), "Declared type " + declaredType + " does not match initializer type " + value.getClass().getName());
-            }
-        }
+    //         TokenType declaredType = stmt.getDeclaredType();
+    //         if (!isTypeCompatible(declaredType, value)) {
+    //             throw new RunTimeError(stmt.getName(), "Declared type " + declaredType + " does not match initializer type " + value.getClass().getName());
+    //         }
+    //     }
 
-        environment.define(stmt.getName().getLexeme(), value);
+    //     environment.define(stmt.getName().getLexeme(), value);
 
-        // DEBUGING FEATURE: print the variable name and value
-        try {
-            System.out.println("Variable " + stmt.getName().getLexeme() + " = " + stringify(value) + " of type " + value.getClass().getName());
-        } catch (NullPointerException e) {
-            System.out.println("null variable");
-        }
-        return null;
-    }
+    //     // DEBUGING FEATURE: print the variable name and value
+    //     try {
+    //         System.out.println("Variable " + stmt.getName().getLexeme() + " = " + stringify(value) + " of type " + value.getClass().getName());
+    //     } catch (NullPointerException e) {
+    //         System.out.println("null variable");
+    //     }
+    //     return null;
+    // }
 
     private boolean isTypeCompatible(TokenType declaredType, Object value) {
         if (declaredType == TokenType.BOOLEAN && value instanceof String) {
@@ -348,10 +439,4 @@ public class Interpreter implements Expr.Visitor<Object>
 
         return object.toString();
     }
-
-    private void checkNumberOperands(Token operator, Object left, Object right) {
-        if (left instanceof Number && right instanceof Number) return;
-        throw new RunTimeError(operator, "Operands must be a number.");
-    }
-    
 }

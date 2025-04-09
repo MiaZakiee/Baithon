@@ -1,6 +1,7 @@
 /*
  * AST Printer
- * 
+ * This class is responsible for printing the AST (Abstract Syntax Tree) in a readable format.
+ * It implements the Visitor pattern to traverse the AST and generate a string representation of it.
  */
 
 package Parsers;
@@ -41,6 +42,16 @@ public class AstPrinter implements Expr.Visitor<String> {
     @Override
     public String visitVariableExpr(Expr.Variable expr) {
         return expr.name.getLexeme();
+    }
+
+    @Override
+    public String visitIncrementOrDecrementExpr(Expr.IncrementOrDecrement expr) {
+        String op = expr.getOperator().getLexeme();
+        String inner = expr.getVariable().getName().getLexeme();
+
+        return expr.isPrefix()
+          ? "(" + op + inner + ")"
+          : "(" + inner + op + ")";
     }
 
     // Helper function

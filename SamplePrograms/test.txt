@@ -2,8 +2,14 @@
 -- & Concat
 -- $ New line
 SUGOD
-    MUGNA NUMERO x = 4, y = 5, z = 6
-    MUGNA LETRA a = 'c'
-    MUGNA TINUOD t = "OO"
-    IPAKITA: x & t & z & $ & a & [t] & "last" & $ & "yeah" 
+    MUGNA NUMERO X = 0
+    IPAKITA: "X: " & X
+    ++X
+    IPAKITA: "X: " & X
+    X++
+    IPAKITA: "X: " & X
+    X += 3
+    IPAKITA: "X: " & X
+    X = 'a'
+    IPAKITA: X
 KATAPUSAN

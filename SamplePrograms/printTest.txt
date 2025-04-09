@@ -1,0 +1,9 @@
+-- Test print statements
+SUGOD
+    IPAKITA: "Hello, World!"
+    MUGNA NUMERO x = 42
+    MUGNA STRING greeting = "Hello"
+    IPAKITA: greeting & " " & x
+    IPAKITA: "Line 1" & $ & "Line 2"
+    IPAKITA: "[" & "]" & "&" & "$"
+KATAPUSAN

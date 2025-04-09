@@ -71,9 +71,8 @@ public class Parser {
         }
 
         // ensure that the last token is an END token
-        if (!match(TokenType.END)) {
-            throw error(peek(), "Expect 'KATAPUSAN' at the end of the program.");
-        }
+        if (!match(TokenType.END)) throw error(peek(), "Expect 'KATAPUSAN' at the end of the program.");
+
         // consume END token
         advance(); // consume END token
 
@@ -92,7 +91,6 @@ public class Parser {
 
     private Stmt statement() {
         // System.out.println("Parser: parsing statement at token: " + peek().getLexeme());
-
         Stmt stmt;
 
         if (match(TokenType.PRINT)) {
@@ -105,8 +103,18 @@ public class Parser {
             stmt = expressionStatement();
         }
 
-        if (!match(TokenType.NEW_LINE) && !check(TokenType.END)) {
+        // if (!match(TokenType.NEW_LINE) && !check(TokenType.END)) {
+        //     throw error(peek(), "Expect new line after statement.");
+        // }
+
+
+        if (!check(EOF) && !check(TokenType.NEW_LINE) && !check(TokenType.END)) {
             throw error(peek(), "Expect new line after statement.");
+        }
+
+        // If we're not at the end of the file or block, consume the newline
+        if (match(TokenType.NEW_LINE)) {
+            // do nothing, just consume it
         }
 
         return stmt;
@@ -162,22 +170,24 @@ public class Parser {
         List<Expr> initializers = new ArrayList<>();
         
         do {
-            Token name = consume(TokenType.IDENTIFIER, "Expected variable name.");
+            Token name = peek(); 
+
+            if (Lexers.Scanner.keywords.containsKey(name.getLexeme())) {
+                throw error(name, "Cannot use " + name.getLexeme() + " as a variable name.");
+            }
+
+            name = consume(TokenType.IDENTIFIER, "Expected variable name.");
+            
+
             names.add(name);
 
+            Expr initializer = null;
             if (match(EQUAL)) {
-                // if the next token is a new line or end, throw an error
-                if (check(TokenType.NEW_LINE) || check(TokenType.END)) {
-                    throw error(peek(), "Missing initializer after '='.");
-                }
-
-                Expr initializer = expression();
-                // debugging
-                // System.out.println("Parser: found initializer: " + name.getLexeme() + " = " + initializer);
-                initializers.add(initializer);
-            } else {
-                initializers.add(null);
+                initializer = expression();
             }
+            initializers.add(initializer);
+            // System.out.println("Parser: initializer: " + initializer);
+            // System.out.println("Parser: name: " + name);
 
         } while (match(COMMA));
 
@@ -209,18 +219,59 @@ public class Parser {
     private Expr assignment() {
         Expr expr = equality();
         // System.out.println("Parser: left side of assignment: " + expr);
+        
+        // Compound assignment
+        if (match(PLUS_ASSIGN,MINUS_ASSIGN,MULTIPLY_ASSIGN,DIVIDE_ASSIGN,MODULO_ASSIGN)) {
+            Token operator = previous();
+            Expr value = assignment();
 
+            if (!(expr instanceof Expr.Variable)) {
+                throw error(operator,"Invalid assignment target for: " + operator.getLexeme() + ".");
+            }
+
+            Expr.Variable var = (Expr.Variable) expr;
+            TokenType simpleOp;
+            switch (operator.getType()) {
+                case PLUS_ASSIGN:
+                    simpleOp = TokenType.PLUS;
+                    break;
+                case MINUS_ASSIGN:
+                    simpleOp = TokenType.MINUS;
+                    break;
+                case MULTIPLY_ASSIGN:
+                    simpleOp = TokenType.MULTIPLY;
+                    break;
+                case DIVIDE_ASSIGN:
+                    simpleOp = TokenType.DIVIDE;
+                    break;
+                    case MODULO_ASSIGN:
+                    simpleOp = TokenType.MODULO;
+                    break;
+                    default:
+                    throw error(operator, "Unknown operator: " + operator.getLexeme());
+                }
+                
+            Expr binary = new Expr.Binary(
+                new Expr.Variable(var.getName()),
+                new Token(simpleOp, operator.getLexeme().substring(0,1), null, operator.getLine()),
+                value
+                );
+                
+            return new Expr.Assign(var.getName(), binary);
+        }
+
+        // Simple assignment
         if (match(EQUAL)) {
             Token equals = previous();
             Expr value = assignment();
             // System.out.println("Parser: right side of assignment: " + value);
 
             if (expr instanceof Expr.Variable) {
-                Token name = ((Expr.Variable)expr).name;
+                Token name = ((Expr.Variable)expr).getName();
                 return new Expr.Assign(name, value);
             }
 
-            error(equals, "Invalid assignment target."); 
+            throw error(equals, "Invalid assignment target."); 
         }
 
         return expr;
@@ -231,7 +282,7 @@ public class Parser {
     private Expr equality() {
         Expr expr = comparison();
 
-        while (match(NOT_EQUAL, NOT_EQUAL)) {
+        while (match(DECLARE, NOT_EQUAL)) {
         Token operator = previous();
         Expr right = comparison();
         expr = new Expr.Binary(expr, operator, right);
@@ -287,6 +338,17 @@ public class Parser {
             return new Expr.Unary(operator, right);
         }
 
+        if (match(TokenType.INCREMENT, TokenType.DECREMENT)) {
+            Token operator = previous();
+            Expr operand = unary();
+        
+            if (!(operand instanceof Expr.Variable)) {
+                throw error(previous(), "Can only apply '"
+                + operator.getLexeme() + "' to a variable.");
+            }
+
+            return new Expr.IncrementOrDecrement(operator,(Expr.Variable) operand, true);
+        }
         return primary();
     }
 
@@ -308,7 +370,14 @@ public class Parser {
 
         if (match(TokenType.IDENTIFIER)) {
             // Return a variable expression for identifiers
-            return new Expr.Variable(previous());
+            Expr.Variable var = new Expr.Variable(previous());
+
+            if (match(TokenType.INCREMENT,TokenType.DECREMENT)) {
+                Token operator = previous();
+                return new Expr.IncrementOrDecrement(operator, var, false);
+            } else {
+                return var;
+            }
         }
 
         if (match(TokenType.LEFT_PAREN)) {

@@ -61,7 +61,7 @@ public class Baithon {
     if (hadRuntimeError) System.exit(70);
     
 
-    // try {
+    try {
       // Lexical Analysis
       Scanner scanner = new Scanner(source);
       List<Token> tokens = scanner.scanTokens();
@@ -77,7 +77,7 @@ public class Baithon {
 
       // Print the AST
       // for (Stmt statement : statements) {
-        // System.out.println("Parsed statement: " + statement.toString());
+      //   System.out.println("Parsed statement: " + statement.toString());
       // }
 
       // if any errors were found, stop printing tokens
@@ -92,10 +92,10 @@ public class Baithon {
       // for (Token token : tokens) {
         // System.out.println(token);
       // }
-    // } catch (Exception e) {
+    } catch (Exception e) {
       // Handle any exceptions that occur during parsing or interpretation
       // System.err.println("An error occurred: " + e.getMessage());
-    // }    
+    }    
   }
 
   public static void error(int line, String message) {
