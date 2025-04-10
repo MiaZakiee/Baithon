@@ -11,6 +11,7 @@ public abstract class Stmt {
         // R visitVarStmt(Var stmt);
         R visitBlockStmt(Block stmt);
         R visitMultiVar(MultiVar stmt);
+        R visitIfStmt(If stmt);
     }
 
     public static class Expression extends Stmt {
@@ -121,6 +122,34 @@ public abstract class Stmt {
         }
         public TokenType getDeclaredType() {
             return declaredType;
+        }
+    }
+
+    public static class If extends Stmt {
+        public If(Expr condition, Stmt thenBranch, Stmt elseBranch) {
+            this.condition = condition;
+            this.thenBranch = thenBranch;
+            this.elseBranch = elseBranch;
+        }
+
+        final Expr condition;
+        final Stmt thenBranch;
+        final Stmt elseBranch;
+
+        @Override
+        public <R> R accept(Visitor<R> visitor) {
+            return visitor.visitIfStmt(this);
+        }
+
+        // getters
+        public Expr getCondition() {
+            return condition;
+        }
+        public Stmt getThenBranch() {
+            return thenBranch;
+        }
+        public Stmt getElseBranch() {
+            return elseBranch;
         }
     }
 

@@ -1,0 +1,39 @@
+-- Test print statements
+SUGOD
+    -- Valid print statements
+    IPAKITA: "This is a valid string."
+    IPAKITA: 12345
+    IPAKITA: 3.14159
+    -- IPAKITA: true
+    -- IPAKITA: false
+    -- IPAKITA: nil
+    IPAKITA: "Concatenation: " & "Hello" & " " & "World!"
+    IPAKITA: "Newline Test:" & $ & "This is on a new line."
+    IPAKITA: "[" & "]" & "&" & "$"
+
+    -- Print variables
+    MUGNA NUMERO x = 10
+    MUGNA STRING y = "Test"
+    IPAKITA: "Variable x: " & x
+    IPAKITA: "Variable y: " & y
+    
+    -- Invalid print statements
+    -- IPAKITA:  -- Missing expression
+    -- IPAKITA: "Unterminated string
+    -- IPAKITA: x + "Invalid operation"  -- Type mismatch
+    -- IPAKITA: undefinedVariable  -- Undefined variable
+
+    -- Edge cases
+    IPAKITA: ""  -- Empty string
+    IPAKITA: " "  -- Single space
+    IPAKITA: "Special characters: " & "[" & "]" & "&" & "$" & "\n" & "\t"
+    IPAKITA: "Escape sequences: " & "[" & "n" & "]"  -- Should NOT print a newline
+    IPAKITA: "Nested concatenation: " & ("Hello" & " " & "World!")
+    IPAKITA: "Nested concatenation: " & (1 + 2) * 3
+    -- Invalid syntax
+    -- IPAKITA: "Mismatched quotes'
+    -- IPAKITA: "Extra colon:":
+    -- IPAKITA: "Missing colon" IPAKITA
+    -- IPAKITA: "Invalid operator" + 5
+KATAPUSAN
+-- comment here

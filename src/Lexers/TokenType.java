@@ -35,7 +35,7 @@ public enum TokenType {
   EQUAL, NOT_EQUAL, LESS, LESS_EQUAL, GREATER, GREATER_EQUAL,
 
   // comments
-  DASH, DASH_DASH,
+  DASH, DASH_DASH, COMMENT,
 
   // Single-character tokens.
   LEFT_PAREN, RIGHT_PAREN, LEFT_BRACE, RIGHT_BRACE,

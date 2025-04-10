@@ -197,13 +197,17 @@ public class Scanner {
 
       case '-': 
         if (match('-')) { // Comments
-          // consume the rest of the line
-          while (peek() != '\n' && !isAtEnd()) advance();
-          // consume the new line
-          if (peek() == '\n') {
-            line++;
-            addToken(NEW_LINE);
-            advance();
+
+          if (isDecrementOperator()) {
+            addToken(DECREMENT);
+          } else {
+            while (peek() != '\n' && !isAtEnd()) advance();
+            // consume the new line
+            if (peek() == '\n') {
+              line++;
+              addToken(NEW_LINE);
+              advance();
+            }
           }
         } else if (match('=')) {  // Assignment operator
           addToken(MINUS_ASSIGN);
@@ -408,4 +412,15 @@ public class Scanner {
     if (current + 1 >= source.length()) return '\0';
     return source.charAt(current + 1);
   }
+
+  private boolean isDecrementOperator() {
+    // Check if the previous character is part of a variable or expression
+    boolean isBeforeVariable = start > 0 && Character.isLetterOrDigit(source.charAt(start - 1));
+
+    // Check if the next character is part of a variable or expression
+    boolean isAfterVariable = !isAtEnd() && Character.isLetterOrDigit(peek());
+
+    // If either side is part of a variable, it's a decrement operator
+    return isBeforeVariable || isAfterVariable;
+}
 }

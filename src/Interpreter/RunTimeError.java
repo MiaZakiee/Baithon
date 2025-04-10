@@ -7,6 +7,7 @@ public class RunTimeError extends RuntimeException {
 
     public RunTimeError(Token token, String message) {
         super(message);
+        // System.out.println("Token: " + token);
         this.token = token;
     }
 }

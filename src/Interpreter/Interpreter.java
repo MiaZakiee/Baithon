@@ -36,11 +36,6 @@ public class Interpreter implements Expr.Visitor<Object>
             throw new RunTimeError(variableName, "Variable '" + variableName.getLexeme() + "' is not defined.");
         }
 
-        // Check type compatibility
-        if (!isTypeCompatible(variableName.getType(), value)) {
-            throw new RunTimeError(variableName, "Type mismatch for variable '" + variableName.getLexeme() + "'.");
-        }
-
         // Assign the value to the variable
         environment.assign(variableName, value);
         
@@ -64,12 +59,14 @@ public class Interpreter implements Expr.Visitor<Object>
         switch (expr.getOperator().getType()) {
             case MINUS:
                 checkNumberOperand(expr.getOperator(), right);
-                return -(double) right;
+                if (right instanceof Integer) {
+                    return - (Integer) right;
+                } else {
+                    return - (Double) right;
+                }
             case NOT:
                 return !(boolean) isTruthy(right);
         }
-
-
 
         return null;
     }
@@ -89,6 +86,7 @@ public class Interpreter implements Expr.Visitor<Object>
     public Object visitBinaryExpr(Expr.Binary expr) {
         Object left = evaluate(expr.getLeft());
         Object right = evaluate(expr.getRight());
+        Token operator = expr.getOperator();
 
         // Left     Right   Result
         // Integer	Integer	Integer
@@ -96,7 +94,7 @@ public class Interpreter implements Expr.Visitor<Object>
         // Double	Integer	Double
         // Double	Double	Double
 
-        switch (expr.getOperator().getType()) {
+        switch (operator.getType()) {
             case PLUS:
                 if (left instanceof String || right instanceof String) {
                     if (!(left instanceof String) || !(right instanceof String)) {
@@ -109,9 +107,9 @@ public class Interpreter implements Expr.Visitor<Object>
                 if (left instanceof Character && right instanceof Character) {
                     return (char) ((Character) left + (Character) right);
                 }
-                return numberArithmetic(left, right, expr.getOperator().getType());
+                return numberArithmetic(left, right, operator);
             case MINUS,MULTIPLY,DIVIDE,MODULO,GREATER,GREATER_EQUAL,LESS,LESS_EQUAL:
-                return numberArithmetic(left, right, expr.getOperator().getType());
+                return numberArithmetic(left, right, operator);
             case EQUAL:
                 return isEqual(left, right);
             case NOT_EQUAL:
@@ -181,23 +179,9 @@ public class Interpreter implements Expr.Visitor<Object>
                     if (value.equals("OO")) value = true;
                     if (value.equals("DILI")) value = false;
                 }
-
-                if (!isTypeCompatible(declaredType, value)) {
-                    throw new RunTimeError(name,"Type mismatch for variable '" + name.getLexeme() + "'.");
-                }
-
-                // Debugging
-                // System.out.println("Interpretter: declared type: " + declaredType);
-                // System.out.println("Interpretter: initializer value: " + value);
-                // System.out.println("Interpretter: initializer type: " + value.getClass().getName());
-
-                if (!isTypeCompatible(declaredType, value)) {
-                    throw new RunTimeError(name, 
-                    "Declared type " + declaredType + " does not match initializer type " + value.getClass().getName());
-                }
             }
 
-            environment.define(name.getLexeme(), value);
+            environment.define(name.getLexeme(), value, declaredType);
 
             // DEBUGING FEATURE: print the variable name and value
             try {
@@ -237,29 +221,46 @@ public class Interpreter implements Expr.Visitor<Object>
         return expr.isPrefix() ? newValue : value;
     }
 
+    @Override
+    public Void visitIfStmt(Stmt.If stmt) {
+        if (isTruthy(evaluate(stmt.getCondition()))) {
+            execute(stmt.getThenBranch());
+        } else if (stmt.getElseBranch() != null) {
+            execute(stmt.getElseBranch());
+        }
+        return null;
+    }
+
     // Helper functions -----------------------------------------------------
 
     // Used for type fidelity
-    private Object numberArithmetic(Object left, Object right, TokenType operator) {
+    private Object numberArithmetic(Object left, Object right, Token operator) {
+        TokenType type = operator.getType();
+
+        // Check if both operands are numbers
+        if (!(left instanceof Number) || !(right instanceof Number)) {
+            throw new RunTimeError(operator, "Operands must be numbers.");
+        }
+
         boolean leftIsInt = left instanceof Integer;
         boolean rightIsInt = right instanceof Integer;
-        boolean leftIsDouble = left instanceof Double;
-        boolean rightIsDouble = right instanceof Double;
-
-        if (!(left instanceof Number) || !(right instanceof Number)) {
-            throw new RunTimeError(null, "Operands must be numbers.");
-        }
 
         // Integer + Integer = Integer
         if (leftIsInt && rightIsInt) {
             int l = (int) left;
             int r = (int) right;
-            return switch (operator) {
+            return switch (type) {
                 case PLUS -> l + r;
                 case MINUS -> l - r;
                 case MULTIPLY -> l * r;
-                case DIVIDE -> l / r;
-                case MODULO -> l % r;
+                case DIVIDE -> {
+                    if (r == 0) throw new RunTimeError(null, "Division by zero.");
+                    yield l / r;
+                }
+                case MODULO -> {
+                    if (r == 0) throw new RunTimeError(null, "Division by zero.");
+                    yield l % r;
+                }
                 case GREATER -> l > r;
                 case GREATER_EQUAL -> l >= r;
                 case LESS -> l < r;
@@ -271,12 +272,18 @@ public class Interpreter implements Expr.Visitor<Object>
         // Otherwise, convert both to double
         double l = toDouble(left);
         double r = toDouble(right);
-        return switch (operator) {
+        return switch (type) {
             case PLUS -> l + r;
             case MINUS -> l - r;
             case MULTIPLY -> l * r;
-            case DIVIDE -> l / r;
-            case MODULO -> l % r;
+            case DIVIDE -> {
+                if (r == 0) throw new RunTimeError(null, "Division by zero.");
+                yield l / r;
+            }
+            case MODULO -> {
+                if (r == 0) throw new RunTimeError(null, "Division by zero.");
+                yield l % r;
+            }
             case GREATER -> l > r;
             case GREATER_EQUAL -> l >= r;
             case LESS -> l < r;
@@ -290,8 +297,6 @@ public class Interpreter implements Expr.Visitor<Object>
         if (number instanceof Double) return (Double) number;
         throw new RuntimeException("Expected number, got: " + number.getClass().getSimpleName());
     }
-
-
 
     private Object evaluate(Expr expr) {
         // System.out.println("Evaluating expression: " + expr.getClass().getSimpleName());
@@ -393,6 +398,35 @@ public class Interpreter implements Expr.Visitor<Object>
     //     return null;
     // }
 
+    private boolean isEqual(Object left, Object right) {
+        if (left == null && right == null) return true;
+        if (left == null) return false;
+        return left.equals(right);
+    }
+
+    private String stringify(Object object) {
+        // System.out.println("Stringifying object: " + object + " (Type: " + (object != null ? object.getClass().getName() : "null") + ")");
+
+        if (object == null) return "nil";
+
+        // maybe change this to OO or DILI??
+        if (object instanceof Boolean) return (boolean) object ? "OO" : "DILI";
+
+        if (object instanceof Double) {
+            String text = object.toString();
+            if (text.endsWith(".0")) {
+                text = text.substring(0, text.length() - 2); // remove trailing ".0"
+            }
+            return text;
+        }
+
+        if (object instanceof Integer) return object.toString();
+        if (object instanceof Character) return object.toString();
+        if (object instanceof String) return (String) object;
+
+        return object.toString();
+    }
+
     private boolean isTypeCompatible(TokenType declaredType, Object value) {
         if (declaredType == TokenType.BOOLEAN && value instanceof String) {
             return value.equals("OO") || value.equals("DILI");
@@ -409,34 +443,5 @@ public class Interpreter implements Expr.Visitor<Object>
 
         // System.out.println("isTypeCompatible: Declared type: " + declaredType + ", Value type: " + (value != null ? value.getClass().getName() : "null") + ", Result: " + result);
         return result;
-    }
-
-    private boolean isEqual(Object left, Object right) {
-        if (left == null && right == null) return true;
-        if (left == null) return false;
-        return left.equals(right);
-    }
-
-    private String stringify(Object object) {
-        // System.out.println("Stringifying object: " + object + " (Type: " + (object != null ? object.getClass().getName() : "null") + ")");
-
-        if (object == null) return "nil";
-
-        // maybe change this to OO or DILI??
-        if (object instanceof Boolean) return (boolean) object ? "true" : "false";
-
-        if (object instanceof Double) {
-            String text = object.toString();
-            if (text.endsWith(".0")) {
-                text = text.substring(0, text.length() - 2); // remove trailing ".0"
-            }
-            return text;
-        }
-
-        if (object instanceof Integer) return object.toString();
-        if (object instanceof Character) return object.toString();
-        if (object instanceof String) return (String) object;
-
-        return object.toString();
     }
 }

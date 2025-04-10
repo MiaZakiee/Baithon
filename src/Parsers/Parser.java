@@ -99,6 +99,8 @@ public class Parser {
             stmt = varDeclaration();
         } else if (match(TokenType.LEFT_BRACE)) {
             stmt = new Stmt.Block(block());
+        } else if (match(TokenType.IF)) {
+            stmt = ifStatement();
         } else {
             stmt = expressionStatement();
         }
@@ -133,20 +135,7 @@ public class Parser {
 
     private Stmt printStatement() {
         consume(TokenType.COLON, "Expect ':' after 'IPAKITA'.");
-        // System.out.println("Parser: print statement");
-        Expr value = expression();
-
-        while (match(TokenType.NEW_LINE_LITERAL) || match(TokenType.CONCAT)) {
-            Token operator = previous();
-
-            Expr right;
-            if (operator.getType() == TokenType.NEW_LINE_LITERAL) {
-                right = new Expr.Literal('\n');
-            } else {
-                right = expression();
-            }
-            value = new Expr.Binary(value, operator, right);
-        }
+        Expr value = expression(); // Parse the entire expression, including concatenation
         return new Stmt.Print(value);
     }
 
@@ -168,7 +157,7 @@ public class Parser {
         // parse the variable nameS PLURAL for multi declaration
         List<Token> names = new ArrayList<>();
         List<Expr> initializers = new ArrayList<>();
-        
+
         do {
             Token name = peek(); 
 
@@ -178,14 +167,32 @@ public class Parser {
 
             name = consume(TokenType.IDENTIFIER, "Expected variable name.");
             
-
             names.add(name);
-
+            
             Expr initializer = null;
             if (match(EQUAL)) {
                 initializer = expression();
+
+                // Baithon specification: true is "OO" and false is "DILI" all enclosed in double quotes
+                if (dataType == BOOLEAN && initializer instanceof Expr.Literal) {
+                    Object value = ((Expr.Literal) initializer).getValue();
+                    if (value instanceof String) {
+                        if (value.equals("OO")) {
+                            initializer = new Expr.Literal(true);
+                        } else if (value.equals("DILI")) {
+                            initializer = new Expr.Literal(false);
+                        } else {
+                            throw error(name, "Invalid boolean value: " + value + ". Use \"OO\" or \"DILI\".");
+                        }
+                    }
+                }
             }
             initializers.add(initializer);
+
+            // check type compatibility
+            if (!isTypeCompatible(dataType, initializers.get(initializers.size() - 1))) {
+                throw error(name, "Type mismatch: " + name.getLexeme() + " is not of type " + dataType);
+            }
             // System.out.println("Parser: initializer: " + initializer);
             // System.out.println("Parser: name: " + name);
 
@@ -197,6 +204,21 @@ public class Parser {
         // System.out.println("Parser: dataType: " + dataType);
 
         return new Stmt.MultiVar(names, initializers, dataType);
+    }
+
+    private Stmt ifStatement() {
+        consume(TokenType.LEFT_PAREN, "Expect '(' after 'IF'.");
+        Expr condition = expression();
+        consume(TokenType.RIGHT_PAREN, "Expect ')' after condition.");
+
+        Stmt thenBranch = statement();
+        Stmt elseBranch = null;
+
+        if (match(TokenType.ELSE)) {
+            elseBranch = statement();
+        }
+
+        return new Stmt.If(condition, thenBranch, elseBranch);
     }
 
     private Stmt expressionStatement() {
@@ -308,7 +330,7 @@ public class Parser {
     private Expr term() {
         Expr expr = factor();
 
-        while (match(TokenType.MINUS, TokenType.PLUS)) {
+        while (match(TokenType.MINUS, TokenType.PLUS, TokenType.CONCAT)) {
             Token operator = previous();
             Expr right = factor();
             expr = new Expr.Binary(expr, operator, right);
@@ -485,4 +507,19 @@ public class Parser {
     private Token previous() {
         return tokens.get(current - 1);
     }
+
+    private boolean isTypeCompatible(TokenType declaredType, Expr initializer) {
+        if (initializer instanceof Expr.Literal) {
+            Object value = ((Expr.Literal) initializer).getValue();
+            return switch (declaredType) {
+                case INTEGER -> value instanceof Integer;
+                case FLOAT -> value instanceof Double;
+                case STRING -> value instanceof String;
+                case BOOLEAN -> value instanceof Boolean;
+                case CHARACTER -> value instanceof Character;
+                default -> false;
+            };
+        }
+        return true; // Allow non-literal expressions (e.g., variables, binary expressions)
+    }    
 }

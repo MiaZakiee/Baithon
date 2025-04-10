@@ -1,0 +1,7 @@
+SUGOD
+    MUGNA TINUOD x = "OO"
+    IPAKITA: x
+    KUNG (x == 1) {
+     IPAKITA: "yawa ka"   
+    }
+KATAPUSAN
