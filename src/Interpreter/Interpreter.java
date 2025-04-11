@@ -147,7 +147,15 @@ public class Interpreter implements Expr.Visitor<Object>
 
     @Override
     public Object visitLogicalExpr(Expr.Logical expr) {
-        return null;
+        Object left = evaluate(expr.getLeft());
+
+        if (expr.getOperator().getType() == TokenType.OR) {
+        if (isTruthy(left)) return left;
+        } else {
+        if (!isTruthy(left)) return left;
+        }
+
+        return evaluate(expr.getRight());
     }
 
 	@Override

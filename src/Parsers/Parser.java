@@ -62,8 +62,6 @@ public class Parser {
             throw error(peek(), "Expect 'SUGOD' at the start of the program.");
         }
 
-        advance(); // consume START token
-
         // parse the statements
         while (!isAtEnd() && !check(TokenType.END)) {
             if (match(TokenType.NEW_LINE)) continue; // skip new lines
@@ -90,36 +88,30 @@ public class Parser {
     }
 
     private Stmt statement() {
-        // System.out.println("Parser: parsing statement at token: " + peek().getLexeme());
-        Stmt stmt;
-
         if (match(TokenType.PRINT)) {
-            stmt = printStatement();
-        } else if (match(TokenType.VAR)) {
-            stmt = varDeclaration();
-        } else if (match(TokenType.LEFT_BRACE)) {
-            stmt = new Stmt.Block(block());
-        } else if (match(TokenType.IF)) {
-            stmt = ifStatement();
-        } else {
-            stmt = expressionStatement();
+            return printStatement();
+        } 
+        if (match(TokenType.VAR)) {
+            return varDeclaration();
+        } 
+        if (match(TokenType.LEFT_BRACE)) {
+            return new Stmt.Block(block());
+        } 
+        if (match(TokenType.IF) || match(TokenType.ELIF)) {
+            return ifStatement();
         }
-
-        // if (!match(TokenType.NEW_LINE) && !check(TokenType.END)) {
-        //     throw error(peek(), "Expect new line after statement.");
-        // }
-
-
+        
+        Expr expr = expression();
         if (!check(EOF) && !check(TokenType.NEW_LINE) && !check(TokenType.END)) {
             throw error(peek(), "Expect new line after statement.");
         }
-
+        
         // If we're not at the end of the file or block, consume the newline
         if (match(TokenType.NEW_LINE)) {
             // do nothing, just consume it
         }
-
-        return stmt;
+        
+        return new Stmt.Expression(expr);
     }
 
     private Stmt declaration() {
@@ -170,7 +162,7 @@ public class Parser {
             names.add(name);
             
             Expr initializer = null;
-            if (match(EQUAL)) {
+            if (match(DECLARE)) {
                 initializer = expression();
 
                 // Baithon specification: true is "OO" and false is "DILI" all enclosed in double quotes
@@ -239,7 +231,7 @@ public class Parser {
     }
 
     private Expr assignment() {
-        Expr expr = equality();
+        Expr expr = parseOr();
         // System.out.println("Parser: left side of assignment: " + expr);
         
         // Compound assignment
@@ -304,10 +296,34 @@ public class Parser {
     private Expr equality() {
         Expr expr = comparison();
 
-        while (match(DECLARE, NOT_EQUAL)) {
-        Token operator = previous();
-        Expr right = comparison();
-        expr = new Expr.Binary(expr, operator, right);
+        while (match(EQUAL, NOT_EQUAL)) {
+            Token operator = previous();
+            Expr right = comparison();
+            expr = new Expr.Binary(expr, operator, right);
+        }
+
+        return expr;
+    }
+
+    private Expr parseOr() {
+        Expr expr = parseAnd();
+
+        while (match(TokenType.OR)) {
+            Token operator = previous();
+            Expr right = parseAnd();
+            expr = new Expr.Logical(expr, operator, right);
+        }
+
+        return expr;
+    }
+
+    private Expr parseAnd() {
+        Expr expr = equality();
+
+        while (match(TokenType.AND)) {
+            Token operator = previous();
+            Expr right = equality();
+            expr = new Expr.Logical(expr, operator, right);
         }
 
         return expr;

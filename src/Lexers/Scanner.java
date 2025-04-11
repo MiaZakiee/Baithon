@@ -58,9 +58,8 @@ public class Scanner {
     keywords.put("DILI", TokenType.NOT);
 
     // BOOLEAN VALUES
-    // REMOVED BECAUSE OF LANGUAGE SPECIFICATION SAKDNSADNJASNDKASNDA
-    // keywords.put("\"OO\"",TokenType.TRUE);
-    // keywords.put("\"DILI\"",TokenType.FALSE);
+    keywords.put("OO",TokenType.TRUE);
+    keywords.put("DILI",TokenType.FALSE);
 
     // Control Flow
     keywords.put("ALANG SA",TokenType.FOR);
@@ -177,7 +176,7 @@ public class Scanner {
 
       // Two character tokens
       // (==, !=, <=, >=)
-      case '=': addToken(match('=') ? DECLARE : EQUAL); break;
+      case '=': addToken(match('=') ? EQUAL : DECLARE); break;
       case '!': addToken(match('=') ? NOT_EQUAL : NOT); break;
       case '<': addToken(match('=') ? LESS_EQUAL : LESS); break;
       case '>': addToken(match('=') ? GREATER_EQUAL : GREATER); break;
@@ -353,28 +352,22 @@ public class Scanner {
     String text = source.substring(start, current);
     TokenType type = keywords.getOrDefault(text, null);
 
-    // If the identifier is a reserved word, add it to the list of tokens
-    if (type != null) {
-      addToken(type);
-      return;
-    } 
-
     // If the identifier has a space in it, we need to check if the next character is a space
     // and if it is, we need to consume it
     if (peek() == ' ') {
       int currentIndex = current;
       advance(); // go to the next character
-
+      
       // read the next identifier
       int secondStart = current;
       while (Character.isLetterOrDigit(peek()) || peek() == '_') {
         advance();
       }
-
+      
       // combine the two identifiers
       String secondText = source.substring(secondStart, current);
       TokenType concatTokenType = keywords.getOrDefault(text + " " + secondText, null);
-
+      
       // if the combined identifier is a reserved word, add it to the list of tokens
       // else go back to the previous character
       if (concatTokenType != null) {
@@ -384,6 +377,12 @@ public class Scanner {
         current = currentIndex;
       }
     }
+    // If the identifier is a reserved word, add it to the list of tokens
+    if (type != null) {
+      addToken(type);
+      return;
+    } 
+    
     // base case, one word token
     addToken(IDENTIFIER);
   }
