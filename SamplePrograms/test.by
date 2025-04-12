@@ -1,9 +1,6 @@
 SUGOD
-    MUGNA NUMERO x = 49
-
-    MINTRAS (x < 55) 
+    ALANG SA (MUGNA NUMERO i = 0, i < 5, i++)
     PUNDOK {
-        IPAKITA: x
-        x++
+        IPAKITA: i
     }
 KATAPUSAN

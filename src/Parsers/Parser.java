@@ -93,7 +93,7 @@ public class Parser {
             return printStatement();
         } 
         if (match(TokenType.VAR)) {
-            return varDeclaration();
+            return varDeclaration(false);
         } 
         if (match(TokenType.PUNDOK)) {
             return new Stmt.Block(block());
@@ -124,7 +124,7 @@ public class Parser {
 
     private Stmt declaration() {
         try {
-        if (match(DECLARE)) return varDeclaration();
+        if (match(DECLARE)) return varDeclaration(false);
 
         return statement();
         } catch (ParseError error) {
@@ -139,7 +139,7 @@ public class Parser {
         return new Stmt.Print(value);
     }
 
-    private Stmt varDeclaration() {
+    private Stmt varDeclaration(boolean isLoop) {
         // need to consume data types
         TokenType dataType = peek().getType();
         // System.out.println("Parser: declared dataType: " + dataType);
@@ -196,7 +196,7 @@ public class Parser {
             // System.out.println("Parser: initializer: " + initializer);
             // System.out.println("Parser: name: " + name);
 
-        } while (match(COMMA));
+        } while (!isLoop && match(COMMA));
 
         // DEBUGGINg
         // System.out.println("Parser: names: " + names);
@@ -204,6 +204,68 @@ public class Parser {
         // System.out.println("Parser: dataType: " + dataType);
 
         return new Stmt.MultiVar(names, initializers, dataType);
+    }
+
+    private Stmt varDeclarationLoop () {
+        // need to consume data types
+        TokenType dataType = peek().getType();
+        System.out.println("Parser: declared dataType: " + dataType);
+
+        if (dataType != INTEGER 
+        && dataType != FLOAT 
+        && dataType != CHARACTER
+        && dataType != BOOLEAN
+        && dataType != STRING) {
+            throw error(peek(), "Invalid data type.");
+        }
+
+        advance(); // consume data type
+
+        // parse the variable nameS PLURAL for multi declaration
+        Token name = peek();
+        Expr initializer = null;
+
+        do {
+            if (Lexers.Scanner.keywords.containsKey(name.getLexeme())) {
+                throw error(name, "Cannot use " + name.getLexeme() + " as a variable name.");
+            }
+
+            name = consume(TokenType.IDENTIFIER, "Expected variable name.");
+            
+            if (match(DECLARE)) {
+                initializer = expression();
+
+                // Baithon specification: true is "OO" and false is "DILI" all enclosed in double quotes
+                if (dataType == BOOLEAN && initializer instanceof Expr.Literal) {
+                    Object value = ((Expr.Literal) initializer).getValue();
+                    if (value instanceof String) {
+                        if (value.equals("OO")) {
+                            initializer = new Expr.Literal(true);
+                        } else if (value.equals("DILI")) {
+                            initializer = new Expr.Literal(false);
+                        } else {
+                            throw error(name, "Invalid boolean value: " + value + ". Use \"OO\" or \"DILI\".");
+                        }
+                    }
+                }
+            }
+
+            // check type compatibility
+            if (!isTypeCompatible(dataType, initializer)) {
+                throw error(name, "Type mismatch: " + name.getLexeme() + " is not of type " + dataType);
+            }
+            // System.out.println("Parser: initializer: " + initializer);
+            // System.out.println("Parser: name: " + name);
+
+        } while (match(COMMA));
+
+        // DEBUGGINg
+        // System.out.println("Parser: names: " + names);
+        // System.out.println("Parser: initializer: " + initializers);
+        // System.out.println("Parser: dataType: " + dataType);
+
+        return new Stmt.Var(name, initializer, dataType);
+
     }
 
     private Stmt ifStatement() {
@@ -236,26 +298,35 @@ public class Parser {
     private Stmt forStatement() {
         consume(TokenType.LEFT_PAREN, "Expect '(' after 'ALANG SA'.");
 
-        Stmt initializer;
-        if (match(SEMICOLON)) {
-            initializer = null;
-        } else if (match(VAR)) {
-            initializer = varDeclaration();
-        } else {
+        Stmt initializer = null;
+        if (match(TokenType.VAR)) {
+            initializer = varDeclaration(true);
+        } else if (!match(TokenType.COMMA)) {
             initializer = expressionStatement();
         }
+        consume(TokenType.COMMA, "Expect ',' after initializer.");
+        // debugging
+        // System.out.println("Parser: initializer                FOR LOOP: " + initializer);
 
         Expr condition = null;
-        if (!check(SEMICOLON)) {
+        if (!check(COMMA)) {
             condition = expression();
         }
-        consume(SEMICOLON, "Expect ';' after loop condition.");
+        consume(TokenType.COMMA, "Expect ',' after loop condition.");
+
+        // debugging
+        // System.out.println("Parser: condition             FOR LOOP: " + condition);
 
         Expr increment = null;
         if (!check(RIGHT_PAREN)) {
             increment = expression();
         }
-        consume(RIGHT_PAREN, "Expect ')' after for clauses.");
+
+        // debugging
+        // System.out.println("Parser: increment         FOR LOOP: " + increment);
+
+        consume(RIGHT_PAREN, "Expect ')' after loop condition.");
+        consume(NEW_LINE, "Expect new line after condition.");
 
         Stmt body = statement();
 
@@ -479,9 +550,9 @@ public class Parser {
             if (match(TokenType.INCREMENT,TokenType.DECREMENT)) {
                 Token operator = previous();
                 return new Expr.IncrementOrDecrement(operator, var, false);
-            } else {
-                return var;
-            }
+            } 
+                
+            return var;
         }
 
         if (match(TokenType.LEFT_PAREN)) {
@@ -489,6 +560,11 @@ public class Parser {
             consume(TokenType.RIGHT_PAREN, "Expect ')' after expression.");
             return new Expr.Grouping(expr);
         }
+
+        // Debugging
+        // System.out.println("Parser: peek: " + peek());
+        // System.out.println("Parser: current: " + current);
+        // System.out.println("Parser: tokens: " + tokens);
 
         throw error(peek(), "Expect expression.");
     }
@@ -576,7 +652,7 @@ public class Parser {
     private Token peek() {
         return tokens.get(current);
     }
-
+    
     private Token advance() {
         if (!isAtEnd()) {
             // DEBUGGING

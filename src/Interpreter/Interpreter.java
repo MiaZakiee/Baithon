@@ -168,6 +168,35 @@ public class Interpreter implements Expr.Visitor<Object>
         return evaluate(expr.getExpression());
     }
 
+    
+    // this function is kinda useless kay murag adto tanan mo agi sa visitMultiVar
+    @Override
+    public Void visitVarStmt(Stmt.Var stmt) {
+        Token name = stmt.getName();
+        Expr initializer = stmt.getInitializer();
+        TokenType declaredType = stmt.getDeclaredType();;
+
+        if (initializer != null) {
+            Object value = evaluate(initializer);
+
+            // Convert "OO" and "DILI" to boolean if the declared type is BOOLEAN
+            if (declaredType == TokenType.BOOLEAN && value instanceof String) {
+                if (value.equals("OO")) value = true;
+                if (value.equals("DILI")) value = false;
+            }
+        }
+
+        environment.define(name.getLexeme(), null, declaredType);
+        // DEBUGING FEATURE: print the variable name and value
+        try {
+            // System.out.println("Variable " + name.getLexeme() + " = " + stringify(value) + " of type " + value.getClass().getName());
+        } catch (NullPointerException e) {
+            // System.out.println("null variable: " + name.getLexeme());
+        }
+        
+        return null;
+    }
+
     @Override
     public Void visitMultiVar(Stmt.MultiVar stmt) {
         List<Token> names = stmt.getNames();
@@ -374,45 +403,6 @@ public class Interpreter implements Expr.Visitor<Object>
 
         return null;
     }
-
-    // this function is kinda useless kay murag adto tanan mo agi sa visitMultiVar
-    // @Override
-    // public Void visitVarStmt(Stmt.Var stmt) {
-    //     Object value = null;
-        
-    //     // debug
-    //     // System.out.println("Interpretter: VarStmt: " + stmt.getInitializer());
-
-    //     if (stmt.getInitializer() != null) {
-    //         value = evaluate(stmt.getInitializer());
-
-    //         // Convert "OO" and "DILI" to boolean if the declared type is BOOLEAN
-    //         if (stmt.getDeclaredType() == TokenType.BOOLEAN && value instanceof String) {
-    //             if (value.equals("OO")) value = true;
-    //             if (value.equals("DILI")) value = false;
-    //         }
-
-    //         // Debugging
-    //         System.out.println("Interpretter: declared type: " + stmt.getDeclaredType());
-    //         System.out.println("Interpretter: initializer value: " + value);
-    //         System.out.println("Interpretter: initializer type: " + value.getClass().getName());
-
-    //         TokenType declaredType = stmt.getDeclaredType();
-    //         if (!isTypeCompatible(declaredType, value)) {
-    //             throw new RunTimeError(stmt.getName(), "Declared type " + declaredType + " does not match initializer type " + value.getClass().getName());
-    //         }
-    //     }
-
-    //     environment.define(stmt.getName().getLexeme(), value);
-
-    //     // DEBUGING FEATURE: print the variable name and value
-    //     try {
-    //         System.out.println("Variable " + stmt.getName().getLexeme() + " = " + stringify(value) + " of type " + value.getClass().getName());
-    //     } catch (NullPointerException e) {
-    //         System.out.println("null variable");
-    //     }
-    //     return null;
-    // }
 
     private boolean isEqual(Object left, Object right) {
         if (left == null && right == null) return true;

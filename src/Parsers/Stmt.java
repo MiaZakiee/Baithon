@@ -8,7 +8,7 @@ public abstract class Stmt {
     public interface Visitor<R> {
         R visitExpressionStmt(Expression stmt);
         R visitPrintStmt(Print stmt);
-        // R visitVarStmt(Var stmt);
+        R visitVarStmt(Var stmt);
         R visitBlockStmt(Block stmt);
         R visitMultiVar(MultiVar stmt);
         R visitIfStmt(If stmt);
@@ -51,34 +51,34 @@ public abstract class Stmt {
         }
     }
 
-    // public static class Var extends Stmt {
-    //     public Var(Token name, Expr initializer, TokenType declaredType) {
-    //         this.name = name;
-    //         this.initializer = initializer;
-    //         this.declaredType = declaredType; 
-    //     }
+    public static class Var extends Stmt {
+        public Var(Token name, Expr initializer, TokenType declaredType) {
+            this.name = name;
+            this.initializer = initializer;
+            this.declaredType = declaredType; 
+        }
 
-    //     final Token name;
-    //     final Expr initializer;
-    //     final TokenType declaredType;
+        final Token name;
+        final Expr initializer;
+        final TokenType declaredType;
 
-    //     @Override
-    //     public <R> R accept(Visitor<R> visitor) {
-    //         return visitor.visitVarStmt(this);
-    //     }
+        @Override
+        public <R> R accept(Visitor<R> visitor) {
+            return visitor.visitVarStmt(this);
+        }
 
-    //     // getter
-    //     public Token getName() {
-    //         return name;
-    //     }
-    //     public Expr getInitializer() {
-    //         return initializer;
-    //     }
+        // getter
+        public Token getName() {
+            return name;
+        }
+        public Expr getInitializer() {
+            return initializer;
+        }
 
-    //     public TokenType getDeclaredType() {
-    //         return declaredType;
-    //     }
-    // }
+        public TokenType getDeclaredType() {
+            return declaredType;
+        }
+    }
 
     public static class Block extends Stmt {
         public Block(List<Stmt> statements) {
