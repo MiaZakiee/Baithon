@@ -67,6 +67,9 @@ public class Scanner {
     keywords.put("KUNG",TokenType.IF);
     keywords.put("KUNG DILI",TokenType.ELSE);
     keywords.put("KUNG PA",TokenType.ELIF);
+
+    // bpp specs
+    keywords.put("PUNDOK", TokenType.PUNDOK);
   }
 
   // Constructor

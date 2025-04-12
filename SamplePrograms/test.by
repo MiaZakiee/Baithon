@@ -1,8 +1,9 @@
 SUGOD
     MUGNA NUMERO x = 49
 
-    MINTRAS (x < 55) {
+    MINTRAS (x < 55) 
+    PUNDOK {
         IPAKITA: x
-        x--
+        x++
     }
 KATAPUSAN

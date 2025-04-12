@@ -22,6 +22,7 @@ import Lexers.Token;
 import Lexers.TokenType;
 import static Lexers.TokenType.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /* 
@@ -94,16 +95,20 @@ public class Parser {
         if (match(TokenType.VAR)) {
             return varDeclaration();
         } 
-        if (match(TokenType.LEFT_BRACE)) {
+        if (match(TokenType.PUNDOK)) {
             return new Stmt.Block(block());
         } 
-        if (match(TokenType.IF) || match(TokenType.ELIF)) {
+        if (check(TokenType.IF) || check(TokenType.ELIF)) {
+            advance();
             return ifStatement();
         }
         if (match(TokenType.WHILE)) {
             return whileStatement();
         }
-        
+        if (match(TokenType.FOR)) {
+            return forStatement();
+        }      
+
         Expr expr = expression();
         if (!check(EOF) && !check(TokenType.NEW_LINE) && !check(TokenType.END)) {
             throw error(peek(), "Expect new line after statement.");
@@ -205,6 +210,7 @@ public class Parser {
         consume(TokenType.LEFT_PAREN, "Expect '(' after 'IF'.");
         Expr condition = expression();
         consume(TokenType.RIGHT_PAREN, "Expect ')' after condition.");
+        consume(NEW_LINE, "Expect new line after condition.");
 
         Stmt thenBranch = statement();
         Stmt elseBranch = null;
@@ -220,10 +226,54 @@ public class Parser {
         consume(TokenType.LEFT_PAREN, "Expect '(' after 'MINTRAS'.");
         Expr condition = expression();
         consume(TokenType.RIGHT_PAREN, "Expect ')' after condition.");
+        consume(NEW_LINE, "Expect new line after condition.");
 
         Stmt body = statement();
 
         return new Stmt.While(condition, body);
+    }
+
+    private Stmt forStatement() {
+        consume(TokenType.LEFT_PAREN, "Expect '(' after 'ALANG SA'.");
+
+        Stmt initializer;
+        if (match(SEMICOLON)) {
+            initializer = null;
+        } else if (match(VAR)) {
+            initializer = varDeclaration();
+        } else {
+            initializer = expressionStatement();
+        }
+
+        Expr condition = null;
+        if (!check(SEMICOLON)) {
+            condition = expression();
+        }
+        consume(SEMICOLON, "Expect ';' after loop condition.");
+
+        Expr increment = null;
+        if (!check(RIGHT_PAREN)) {
+            increment = expression();
+        }
+        consume(RIGHT_PAREN, "Expect ')' after for clauses.");
+
+        Stmt body = statement();
+
+        if (increment != null) {
+        body = new Stmt.Block(
+            Arrays.asList(
+                body,
+                new Stmt.Expression(increment)));
+        }
+
+        if (condition == null) condition = new Expr.Literal(true);
+        body = new Stmt.While(condition, body);
+
+        if (initializer != null) {
+            body = new Stmt.Block(Arrays.asList(initializer, body));
+        }
+
+        return body;
     }
 
     private Stmt expressionStatement() {
@@ -233,6 +283,9 @@ public class Parser {
 
     private List<Stmt> block() {
         List<Stmt> statements = new ArrayList<>();
+
+        // Consume opening brace
+        consume(LEFT_BRACE, "Expect '{' after PUNDOK.");
 
         while (!check(RIGHT_BRACE) && !isAtEnd()) {
             if (match(TokenType.NEW_LINE)) continue;
