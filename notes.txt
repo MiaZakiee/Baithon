@@ -1,0 +1,5 @@
+no error if 
+IPAKITA: x & 
+empty concat? not sure yet
+
+also finish testing for conditionals

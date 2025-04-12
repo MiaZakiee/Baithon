@@ -1,0 +1,75 @@
+-- Invalid Conditional Tests for Baithon
+SUGOD
+    -- Invalid Comparison (Type Mismatch)
+    MUGNA NUMERO x = 10
+    KUNG (x > "string") {
+        IPAKITA: "This should not work"
+    }
+
+    -- Undefined Variable in Condition
+    KUNG (undefinedVariable > 5) {
+        IPAKITA: "This should throw an error"
+    }
+
+    -- Invalid Logical Operator Usage
+    MUGNA NUMERO y = 20
+    KUNG (x UG y) {
+        IPAKITA: "Invalid logical operator usage"
+    }
+
+    -- Missing Condition
+    -- KUNG () {
+    --     IPAKITA: "Missing condition"
+    -- }
+
+    -- Unterminated If Block
+    KUNG (x > 5) {
+        IPAKITA: "Unterminated block"
+
+    -- Invalid Else Without If
+    -- KUNG DILI {
+    --     IPAKITA: "Else without if"
+    -- }
+
+    -- Invalid Elif Without If
+    KUNG PA (x == 10) {
+        IPAKITA: "Elif without if"
+    }
+
+    -- Invalid Nested If (Unterminated Inner Block)
+    KUNG (x > 5) {
+        KUNG (y > 15) {
+            IPAKITA: "Unterminated inner block"
+
+    -- Invalid Boolean Value in Condition
+    MUGNA TINUOD condition = "invalid"
+    KUNG (condition) {
+        IPAKITA: "Invalid boolean value"
+    }
+
+    -- Invalid Comparison Operator
+    KUNG (x >< 5) {
+        IPAKITA: "Invalid comparison operator"
+    }
+
+    -- Invalid Syntax in Condition
+    KUNG (x > 5 UG) {
+        IPAKITA: "Invalid syntax in condition"
+    }
+
+    -- Invalid Use of Reserved Keyword in Condition
+    KUNG (SUGOD > 5) {
+        IPAKITA: "Reserved keyword in condition"
+    }
+
+    -- Invalid Multiple Conditions Without Logical Operator
+    KUNG (x > 5 y < 10) {
+        IPAKITA: "Multiple conditions without logical operator"
+    }
+
+    -- Invalid Use of Non-Boolean in If Condition
+    MUGNA NUMERO z = 0
+    KUNG (z) {
+        IPAKITA: "Non-boolean in condition"
+    }
+KATAPUSAN

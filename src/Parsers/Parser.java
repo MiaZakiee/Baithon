@@ -100,6 +100,9 @@ public class Parser {
         if (match(TokenType.IF) || match(TokenType.ELIF)) {
             return ifStatement();
         }
+        if (match(TokenType.WHILE)) {
+            return whileStatement();
+        }
         
         Expr expr = expression();
         if (!check(EOF) && !check(TokenType.NEW_LINE) && !check(TokenType.END)) {
@@ -211,6 +214,16 @@ public class Parser {
         }
 
         return new Stmt.If(condition, thenBranch, elseBranch);
+    }
+
+    private Stmt whileStatement() {
+        consume(TokenType.LEFT_PAREN, "Expect '(' after 'MINTRAS'.");
+        Expr condition = expression();
+        consume(TokenType.RIGHT_PAREN, "Expect ')' after condition.");
+
+        Stmt body = statement();
+
+        return new Stmt.While(condition, body);
     }
 
     private Stmt expressionStatement() {

@@ -32,36 +32,68 @@ public class Environment {
 
 
     public void define(String name, Object value, TokenType type) {
+        // System.out.println("Defining variable: " + name + ", value: " + value + ", type: " + type);
         values.put(name, value);
         types.put(name, type);
     }
 
     public void assign(Token name, Object value) {
-        TokenType varType = types.get(name.getLexeme());
-        if (varType == null) throw new RunTimeError(name, "Variable '" + name.getLexeme() + "' is not defined.");
+        // System.out.println("Assigning variable: " + name + ", value: " + value);
+        // TokenType varType = types.get(name.getLexeme());
+        // if (varType == null) throw new RunTimeError(name, "Variable '" + name.getLexeme() + "' is not defined.");
 
 
-        if (varType == TokenType.INTEGER) {
-            if (value instanceof Integer) {
-                // OK
-            } else if (value instanceof Double) {
-                double d = (Double) value;
-                if (d == (int)d) {
-                    // round‐trip whole numbers back to Integer
-                    value = (int)d;
+        // if (varType == TokenType.INTEGER) {
+        //     if (value instanceof Integer) {
+        //         // OK
+        //     } else if (value instanceof Double) {
+        //         double d = (Double) value;
+        //         if (d == (int)d) {
+        //             // round‐trip whole numbers back to Integer
+        //             value = (int)d;
+        //         } else {
+        //             throw new RunTimeError(name,
+        //                 "Type mismatch: Expected INTEGER but got Double.");
+        //         }
+        //     } else {
+        //         throw new RunTimeError(name,
+        //             "Type mismatch: Expected INTEGER but got " + value.getClass().getSimpleName());
+        //     }
+        // }
+
+        // // …and similar for FLOAT, CHARACTER, etc.
+
+        // values.put(name.getLexeme(), value);
+
+        // System.out.println("Assigning variable: " + name + ", value: " + value);
+        if (types.containsKey(name.getLexeme())) {
+            TokenType varType = types.get(name.getLexeme());
+
+            // Type checking for INTEGER
+            if (varType == TokenType.INTEGER) {
+                if (value instanceof Integer) {
+                    // OK
+                } else if (value instanceof Double) {
+                    double d = (Double) value;
+                    if (d == (int) d) {
+                        value = (int) d; // Convert to Integer
+                    } else {
+                        throw new RunTimeError(name, "Type mismatch: Expected INTEGER but got Double.");
+                    }
                 } else {
-                    throw new RunTimeError(name,
-                        "Type mismatch: Expected INTEGER but got Double.");
+                    throw new RunTimeError(name, "Type mismatch: Expected INTEGER but got " + value.getClass().getSimpleName());
                 }
-            } else {
-                throw new RunTimeError(name,
-                    "Type mismatch: Expected INTEGER but got " + value.getClass().getSimpleName());
             }
+
+            // Add similar checks for FLOAT, CHARACTER, etc.
+
+            values.put(name.getLexeme(), value);
+        } else if (enclosing != null) {
+            // If the variable is not found in the current environment, check the enclosing environment
+            enclosing.assign(name, value); // Delegate to enclosing environment
+        } else {
+            throw new RunTimeError(name, "Variable '" + name.getLexeme() + "' is not defined.");
         }
-
-        // …and similar for FLOAT, CHARACTER, etc.
-
-        values.put(name.getLexeme(), value);
     }
 
 

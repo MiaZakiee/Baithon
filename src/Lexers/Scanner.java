@@ -63,6 +63,7 @@ public class Scanner {
 
     // Control Flow
     keywords.put("ALANG SA",TokenType.FOR);
+    keywords.put("MINTRAS",TokenType.WHILE);
     keywords.put("KUNG",TokenType.IF);
     keywords.put("KUNG DILI",TokenType.ELSE);
     keywords.put("KUNG PA",TokenType.ELIF);

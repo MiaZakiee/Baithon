@@ -1,0 +1,73 @@
+-- Conditional tests for Baithon
+SUGOD
+    -- Simple If Statement
+    MUGNA NUMERO x = 10
+    KUNG (x > 5) {
+        IPAKITA: "x is greater than 5"
+    }
+
+    -- If-Else Statement
+    KUNG (x < 5) {
+        IPAKITA: "x is less than 5"
+    } KUNG DILI {
+        IPAKITA: "x is not less than 5"
+    }
+
+    -- If-Elif-Else Statement
+    KUNG (x == 5) {
+        IPAKITA: "x is equal to 5"
+    } KUNG PA (x > 5) {
+        IPAKITA: "x is greater than 5"
+    } KUNG DILI {
+        IPAKITA: "x is less than 5"
+    }
+
+    -- Nested If Statements
+    MUGNA NUMERO y = 20
+    KUNG (x > 5) {
+        KUNG (y > 15) {
+            IPAKITA: "x is greater than 5 and y is greater than 15"
+        }
+    }
+
+    -- Logical Operators in Conditions
+    KUNG (x > 5 UG y > 15) {
+        IPAKITA: "Both x and y satisfy the condition"
+    }
+    KUNG (x < 5 O y > 15) {
+        IPAKITA: "At least one condition is true"
+    }
+
+    -- Invalid Conditions (should throw errors)
+    -- KUNG (x > "string") {
+    --     IPAKITA: "Invalid comparison"
+    -- }
+    -- KUNG (undefinedVariable > 5) {
+    --     IPAKITA: "Undefined variable in condition"
+    -- }
+
+    -- Edge Cases
+    MUGNA NUMERO z = 0
+    KUNG (z == 0) {
+        IPAKITA: "z is zero"
+    } KUNG PA (z < 0) {
+        IPAKITA: "z is negative"
+    } KUNG DILI {
+        IPAKITA: "z is positive"
+    }
+
+    -- Boolean Conditions
+    MUGNA TINUOD condition = OO
+    KUNG (condition) {
+        IPAKITA: "Condition is true"
+    } KUNG DILI {
+        IPAKITA: "Condition is false"
+    }
+
+    -- Empty If Block
+    KUNG (x > 5) {
+        -- Do nothing
+    } KUNG DILI {
+        IPAKITA: "This should not print"
+    }
+KATAPUSAN

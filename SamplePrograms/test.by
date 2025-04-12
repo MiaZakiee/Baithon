@@ -1,15 +1,8 @@
 SUGOD
     MUGNA NUMERO x = 49
-    KUNG ((x < 100 UG x > 50) O x == 10) {
-        IPAKITA: "Hell yeah imnida"
-    } KUNG PA (x == 49) {
-        IPAKITA: "yawa"
-    } KUNG DILI {
-        IPAKITA: "shet"
-    }
 
-    MUGNA NUMERO y = 69
-    KUNG (x == 49 UG y == 69) {
-        IPAKITA: "Yeyyy"
-    } 
+    MINTRAS (x < 55) {
+        IPAKITA: x
+        x--
+    }
 KATAPUSAN

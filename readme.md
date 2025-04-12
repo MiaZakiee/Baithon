@@ -70,6 +70,6 @@ to run your baithon file
 4. Run your program
 
    ```
-   java -cp out/production/Baithon/ Main.Baithon SamplePrograms/test.txt
+   java -cp out/production/Baithon/ Main.Baithon SamplePrograms/test.by
 
    ```

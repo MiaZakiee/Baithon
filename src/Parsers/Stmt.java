@@ -12,6 +12,7 @@ public abstract class Stmt {
         R visitBlockStmt(Block stmt);
         R visitMultiVar(MultiVar stmt);
         R visitIfStmt(If stmt);
+        R visitWhileStmt(While stmt);
     }
 
     public static class Expression extends Stmt {
@@ -152,6 +153,30 @@ public abstract class Stmt {
             return elseBranch;
         }
     }
+
+    public static class While extends Stmt {
+        public While(Expr condition, Stmt body) {
+        this.condition = condition;
+        this.body = body;
+        }
+
+        @Override
+        public <R> R accept(Visitor<R> visitor) {
+        return visitor.visitWhileStmt(this);
+        }
+
+        final Expr condition;
+        final Stmt body;
+
+        // getters
+        public Expr getCondition() {
+            return condition;
+        }
+        public Stmt getBody() {
+            return body;
+        }
+    }
+
 
     public abstract <R> R accept(Visitor<R> visitor);
 }
