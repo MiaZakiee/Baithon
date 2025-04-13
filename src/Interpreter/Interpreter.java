@@ -17,6 +17,7 @@ import Main.Baithon;
 import Main.Environment;
 import Parsers.*;
 import java.util.List;
+import java.util.Scanner;
 
 public class Interpreter implements Expr.Visitor<Object>
                                     ,Stmt.Visitor<Void> {
@@ -193,7 +194,7 @@ public class Interpreter implements Expr.Visitor<Object>
         } catch (NullPointerException e) {
             // System.out.println("null variable: " + name.getLexeme());
         }
-        
+
         return null;
     }
 
@@ -275,6 +276,19 @@ public class Interpreter implements Expr.Visitor<Object>
         }
         return null;
     }
+
+    @Override
+    public Void visitScanStmt(Stmt.Scan stmt) {
+        // System.out.print(""); // Optionally keep prompt on same line
+
+        Scanner scanner = new Scanner(System.in);
+        String input = scanner.nextLine();
+
+        environment.assign(stmt.name, input);
+        scanner.close();
+        return null;
+    }
+
 
     // Helper functions -----------------------------------------------------
 
@@ -392,14 +406,14 @@ public class Interpreter implements Expr.Visitor<Object>
         Object value = evaluate(stmt.getExpression());
         
         String result = stringify(value);
-
+        
         // System.out.println("Print statement: " + result);
 
         // result = result
             // .replace("&", "") // concat remove &
             // .replace("$", "\n"); // new line
 
-        System.out.print(result + "\n");
+        System.out.print(result);
 
         return null;
     }

@@ -38,34 +38,6 @@ public class Environment {
     }
 
     public void assign(Token name, Object value) {
-        // System.out.println("Assigning variable: " + name + ", value: " + value);
-        // TokenType varType = types.get(name.getLexeme());
-        // if (varType == null) throw new RunTimeError(name, "Variable '" + name.getLexeme() + "' is not defined.");
-
-
-        // if (varType == TokenType.INTEGER) {
-        //     if (value instanceof Integer) {
-        //         // OK
-        //     } else if (value instanceof Double) {
-        //         double d = (Double) value;
-        //         if (d == (int)d) {
-        //             // round‐trip whole numbers back to Integer
-        //             value = (int)d;
-        //         } else {
-        //             throw new RunTimeError(name,
-        //                 "Type mismatch: Expected INTEGER but got Double.");
-        //         }
-        //     } else {
-        //         throw new RunTimeError(name,
-        //             "Type mismatch: Expected INTEGER but got " + value.getClass().getSimpleName());
-        //     }
-        // }
-
-        // // …and similar for FLOAT, CHARACTER, etc.
-
-        // values.put(name.getLexeme(), value);
-
-        // System.out.println("Assigning variable: " + name + ", value: " + value);
         if (types.containsKey(name.getLexeme())) {
             TokenType varType = types.get(name.getLexeme());
 

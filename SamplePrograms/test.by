@@ -1,6 +1,6 @@
 SUGOD
-    ALANG SA (MUGNA NUMERO i = 0, i < 5, i++)
-    PUNDOK {
-        IPAKITA: i
-    }
+    MUGNA STRING x
+    IPAKITA: "Enter your name: "
+    DAWAT: x
+    IPAKITA: "Hello: " & x & "!"
 KATAPUSAN

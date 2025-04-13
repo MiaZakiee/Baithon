@@ -108,6 +108,9 @@ public class Parser {
         if (match(TokenType.FOR)) {
             return forStatement();
         }      
+        if (match(TokenType.SCAN)) {
+            return scanStatement();
+        }
 
         Expr expr = expression();
         if (!check(EOF) && !check(TokenType.NEW_LINE) && !check(TokenType.END)) {
@@ -209,7 +212,7 @@ public class Parser {
     private Stmt varDeclarationLoop () {
         // need to consume data types
         TokenType dataType = peek().getType();
-        System.out.println("Parser: declared dataType: " + dataType);
+        // System.out.println("Parser: declared dataType: " + dataType);
 
         if (dataType != INTEGER 
         && dataType != FLOAT 
@@ -365,6 +368,15 @@ public class Parser {
 
         consume(RIGHT_BRACE, "Expect '}' after block.");
         return statements;
+    }
+
+    private Stmt scanStatement() {
+        // consume the colon
+        consume(TokenType.COLON, "Expect ':' after 'DAWAT'.");
+
+        Token keyword = previous();
+        Token name = consume(TokenType.IDENTIFIER, "Expected variable name after 'DAWAT'.");
+        return new Stmt.Scan(keyword,name);
     }
 
     private Expr assignment() {

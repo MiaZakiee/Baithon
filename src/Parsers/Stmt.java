@@ -13,6 +13,7 @@ public abstract class Stmt {
         R visitMultiVar(MultiVar stmt);
         R visitIfStmt(If stmt);
         R visitWhileStmt(While stmt);
+        R visitScanStmt(Scan stmt);
     }
 
     public static class Expression extends Stmt {
@@ -176,6 +177,30 @@ public abstract class Stmt {
             return body;
         }
     }
+
+    public static class Scan extends Stmt {
+        public final Token keyword;
+        public final Token name;
+
+        public Scan(Token keyword, Token name) {
+            this.keyword = keyword;
+            this.name = name;
+        }
+
+        @Override
+        public <R> R accept(Visitor<R> visitor) {
+            return visitor.visitScanStmt(this);
+        }
+
+        // getters
+        public Token getKeyword() {
+            return keyword;
+        }
+        public Token getName() {
+            return name;
+        }
+    }
+
 
 
     public abstract <R> R accept(Visitor<R> visitor);
