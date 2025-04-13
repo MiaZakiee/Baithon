@@ -209,68 +209,6 @@ public class Parser {
         return new Stmt.MultiVar(names, initializers, dataType);
     }
 
-    private Stmt varDeclarationLoop () {
-        // need to consume data types
-        TokenType dataType = peek().getType();
-        // System.out.println("Parser: declared dataType: " + dataType);
-
-        if (dataType != INTEGER 
-        && dataType != FLOAT 
-        && dataType != CHARACTER
-        && dataType != BOOLEAN
-        && dataType != STRING) {
-            throw error(peek(), "Invalid data type.");
-        }
-
-        advance(); // consume data type
-
-        // parse the variable nameS PLURAL for multi declaration
-        Token name = peek();
-        Expr initializer = null;
-
-        do {
-            if (Lexers.Scanner.keywords.containsKey(name.getLexeme())) {
-                throw error(name, "Cannot use " + name.getLexeme() + " as a variable name.");
-            }
-
-            name = consume(TokenType.IDENTIFIER, "Expected variable name.");
-            
-            if (match(DECLARE)) {
-                initializer = expression();
-
-                // Baithon specification: true is "OO" and false is "DILI" all enclosed in double quotes
-                if (dataType == BOOLEAN && initializer instanceof Expr.Literal) {
-                    Object value = ((Expr.Literal) initializer).getValue();
-                    if (value instanceof String) {
-                        if (value.equals("OO")) {
-                            initializer = new Expr.Literal(true);
-                        } else if (value.equals("DILI")) {
-                            initializer = new Expr.Literal(false);
-                        } else {
-                            throw error(name, "Invalid boolean value: " + value + ". Use \"OO\" or \"DILI\".");
-                        }
-                    }
-                }
-            }
-
-            // check type compatibility
-            if (!isTypeCompatible(dataType, initializer)) {
-                throw error(name, "Type mismatch: " + name.getLexeme() + " is not of type " + dataType);
-            }
-            // System.out.println("Parser: initializer: " + initializer);
-            // System.out.println("Parser: name: " + name);
-
-        } while (match(COMMA));
-
-        // DEBUGGINg
-        // System.out.println("Parser: names: " + names);
-        // System.out.println("Parser: initializer: " + initializers);
-        // System.out.println("Parser: dataType: " + dataType);
-
-        return new Stmt.Var(name, initializer, dataType);
-
-    }
-
     private Stmt ifStatement() {
         consume(TokenType.LEFT_PAREN, "Expect '(' after 'IF'.");
         Expr condition = expression();

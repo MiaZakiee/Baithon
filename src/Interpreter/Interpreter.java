@@ -45,6 +45,7 @@ public class Interpreter implements Expr.Visitor<Object>
 
     public void interpret(List<Stmt> statements) {
         try {
+            getLastPrint(statements);
         for (Stmt statement : statements) {
             execute(statement);
         }
@@ -292,6 +293,16 @@ public class Interpreter implements Expr.Visitor<Object>
 
     // Helper functions -----------------------------------------------------
 
+    // This function is used to get the last print statement
+    private void getLastPrint(List<Stmt> statements) {
+        for (int i = statements.size() - 1; i >= 0; i--) {
+            if (statements.get(i) instanceof Stmt.Print printStmt) {
+                printStmt.setLast(true);
+                break;
+            }
+        }
+    }
+
     // Used for type fidelity
     private Object numberArithmetic(Object left, Object right, Token operator) {
         TokenType type = operator.getType();
@@ -364,14 +375,6 @@ public class Interpreter implements Expr.Visitor<Object>
         return result;
     }
 
-    private Object evaluate(List<Expr> expressions) {
-        Object value = null;
-        for (Expr expression : expressions) {
-            value = evaluate(expression);
-        }
-        return value;
-    }
-
     private void execute(Stmt stmt) {
         stmt.accept(this);
     }
@@ -407,13 +410,8 @@ public class Interpreter implements Expr.Visitor<Object>
         
         String result = stringify(value);
         
-        // System.out.println("Print statement: " + result);
-
-        // result = result
-            // .replace("&", "") // concat remove &
-            // .replace("$", "\n"); // new line
-
-        System.out.print(result);
+        System.out.print(result + 
+            (stmt.isLast() ? "\n" : "")); // Add space if not the last print statement
 
         return null;
     }
@@ -445,23 +443,5 @@ public class Interpreter implements Expr.Visitor<Object>
         if (object instanceof String) return (String) object;
 
         return object.toString();
-    }
-
-    private boolean isTypeCompatible(TokenType declaredType, Object value) {
-        if (declaredType == TokenType.BOOLEAN && value instanceof String) {
-            return value.equals("OO") || value.equals("DILI");
-        }
-
-        boolean result =  switch (declaredType) {
-            case INTEGER -> value instanceof Integer;
-            case FLOAT -> value instanceof Double;
-            case STRING -> value instanceof String;
-            case BOOLEAN -> value instanceof Boolean;
-            case CHARACTER -> value instanceof Character;
-            default -> false;
-        };
-
-        // System.out.println("isTypeCompatible: Declared type: " + declaredType + ", Value type: " + (value != null ? value.getClass().getName() : "null") + ", Result: " + result);
-        return result;
     }
 }

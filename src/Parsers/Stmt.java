@@ -40,6 +40,7 @@ public abstract class Stmt {
         }
 
         final Expr expression;
+        boolean isLast = false;
 
         @Override
         public <R> R accept(Visitor<R> visitor) {
@@ -49,6 +50,13 @@ public abstract class Stmt {
         // getter
         public Expr getExpression() {
             return expression;
+        }
+        public boolean isLast() {
+            return isLast;
+        }
+        // setter
+        public void setLast(boolean isLast) {
+            this.isLast = isLast;
         }
     }
 

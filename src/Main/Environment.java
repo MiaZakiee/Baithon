@@ -40,7 +40,7 @@ public class Environment {
     public void assign(Token name, Object value) {
         if (types.containsKey(name.getLexeme())) {
             TokenType varType = types.get(name.getLexeme());
-
+            
             // Type checking for INTEGER
             if (varType == TokenType.INTEGER) {
                 if (value instanceof Integer) {
@@ -57,7 +57,31 @@ public class Environment {
                 }
             }
 
-            // Add similar checks for FLOAT, CHARACTER, etc.
+            if (varType == TokenType.FLOAT) {
+                if (value instanceof Double) {
+                    // OK
+                } else if (value instanceof Integer) {
+                    value = ((Integer) value).doubleValue(); // Convert to Double
+                } else {
+                    throw new RunTimeError(name, "Type mismatch: Expected FLOAT but got " + value.getClass().getSimpleName());
+                }
+            }
+
+            if (varType == TokenType.BOOLEAN) {
+                if (value instanceof String) {
+                    if (value.equals("OO")) {
+                        value = true;
+                    } else if (value.equals("DILI")) {
+                        value = false;
+                    } else {
+                        throw new RunTimeError(name, "Type mismatch: Expected BOOLEAN but got String.");
+                    }
+                } else if (!(value instanceof Boolean)) {
+                    throw new RunTimeError(name, "Type mismatch: Expected BOOLEAN but got " + value.getClass().getSimpleName());
+                }
+            }
+
+            // else string so.. whatever goes?? 
 
             values.put(name.getLexeme(), value);
         } else if (enclosing != null) {
@@ -66,24 +90,5 @@ public class Environment {
         } else {
             throw new RunTimeError(name, "Variable '" + name.getLexeme() + "' is not defined.");
         }
-    }
-
-
-    private boolean isTypeCompatible(TokenType declaredType, Object value) {
-        if (declaredType == TokenType.BOOLEAN && value instanceof String) {
-            return value.equals("OO") || value.equals("DILI");
-        }
-
-        boolean result =  switch (declaredType) {
-            case INTEGER -> value instanceof Integer;
-            case FLOAT -> value instanceof Double;
-            case STRING -> value instanceof String;
-            case BOOLEAN -> value instanceof Boolean;
-            case CHARACTER -> value instanceof Character;
-            default -> false;
-        };
-
-        // System.out.println("isTypeCompatible: Declared type: " + declaredType + ", Value type: " + (value != null ? value.getClass().getName() : "null") + ", Result: " + result);
-        return result;
     }
 }
