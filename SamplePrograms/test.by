@@ -1,6 +1,4 @@
 SUGOD
-    MUGNA TINUOD x = 12
-    IPAKITA: "Enter your name: "
-    DAWAT: x
-    IPAKITA: "Hello: " & x & "!"
+    MUGNA NUMERO a,b = "OO",123
+    IPAKITA: b
 KATAPUSAN

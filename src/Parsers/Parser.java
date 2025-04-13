@@ -114,7 +114,7 @@ public class Parser {
 
         Expr expr = expression();
         if (!check(EOF) && !check(TokenType.NEW_LINE) && !check(TokenType.END)) {
-            throw error(peek(), "Expect new line after statement.");
+            throw error(peek(), "Expect new line after sta istement.");
         }
         
         // If we're not at the end of the file or block, consume the newline
@@ -161,50 +161,45 @@ public class Parser {
         List<Token> names = new ArrayList<>();
         List<Expr> initializers = new ArrayList<>();
 
-        do {
-            Token name = peek(); 
-
-            if (Lexers.Scanner.keywords.containsKey(name.getLexeme())) {
-                throw error(name, "Cannot use " + name.getLexeme() + " as a variable name.");
-            }
-
-            name = consume(TokenType.IDENTIFIER, "Expected variable name.");
-            
+        // consume the variable names
+        do { 
+            Token name = consume(TokenType.IDENTIFIER, "Expected variable name.");
             names.add(name);
-            
-            Expr initializer = null;
-            if (match(DECLARE)) {
-                initializer = expression();
+        } while (!isLoop &&match(TokenType.COMMA));
 
+        if (match(TokenType.DECLARE)) {
+            do { 
+                Expr initializer = expression();
+                
                 // Baithon specification: true is "OO" and false is "DILI" all enclosed in double quotes
-                if (dataType == BOOLEAN && initializer instanceof Expr.Literal) {
+                if (dataType == BOOLEAN && initializer instanceof Expr.Literal) { 
                     Object value = ((Expr.Literal) initializer).getValue();
+
                     if (value instanceof String) {
                         if (value.equals("OO")) {
                             initializer = new Expr.Literal(true);
                         } else if (value.equals("DILI")) {
                             initializer = new Expr.Literal(false);
                         } else {
-                            throw error(name, "Invalid boolean value: " + value + ". Use \"OO\" or \"DILI\".");
+                            throw error(peek(), "Invalid boolean value: " + value + ". Use \"OO\" or \"DILI\".");
                         }
                     }
                 }
+
+                if (!isTypeCompatible(dataType, initializer)) {
+                    throw error(peek(), "Type mismatch: " + getExprType(initializer) + " is not of type " + dataType);
+                }
+
+                initializers.add(initializer);
+            } while (!isLoop && match(TokenType.COMMA));
+        } else {
+            if (peek().getType() != NEW_LINE) throw error(peek(), 
+            "Expect new line after variable declaration.");
+
+            for (int i = 0; i < names.size(); i++) {
+                initializers.add(new Expr.Literal(null));
             }
-            initializers.add(initializer);
-
-            // check type compatibility
-            if (!isTypeCompatible(dataType, initializers.get(initializers.size() - 1))) {
-                throw error(name, "Type mismatch: " + name.getLexeme() + " is not of type " + dataType);
-            }
-            // System.out.println("Parser: initializer: " + initializer);
-            // System.out.println("Parser: name: " + name);
-
-        } while (!isLoop && match(COMMA));
-
-        // DEBUGGINg
-        // System.out.println("Parser: names: " + names);
-        // System.out.println("Parser: initializer: " + initializers);
-        // System.out.println("Parser: dataType: " + dataType);
+        }
 
         return new Stmt.MultiVar(names, initializers, dataType);
     }
@@ -263,7 +258,7 @@ public class Parser {
             increment = expression();
         }
 
-        // debugging
+        // debugginginitializer
         // System.out.println("Parser: increment         FOR LOOP: " + increment);
 
         consume(RIGHT_PAREN, "Expect ')' after loop condition.");
@@ -629,5 +624,18 @@ public class Parser {
             };
         }
         return true; // Allow non-literal expressions (e.g., variables, binary expressions)
-    }    
+    }
+    
+    private String getExprType(Expr expr) {
+        if (expr instanceof Expr.Literal) {
+            Object value = ((Expr.Literal) expr).getValue();
+            if (value instanceof String) return "STRING";
+            if (value instanceof Boolean) return "BOOLEAN";
+            if (value instanceof Double) return "FLOAT";
+            if (value instanceof Character) return "CHARACTER";
+            if (value instanceof Integer) return "INTEGER"; // or separate NUMBER/INTEGER
+            if (value == null) return "NULL";
+        } 
+        return "UNKNOWN";
+    }
 }
