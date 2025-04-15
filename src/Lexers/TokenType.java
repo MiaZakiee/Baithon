@@ -19,7 +19,7 @@ public enum TokenType {
 
   // Literals
   TRUE, FALSE,
-  NIL,
+  NULL,
 
   // Logical Operators
   AND, OR, NOT,

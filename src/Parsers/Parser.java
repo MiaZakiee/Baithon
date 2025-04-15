@@ -113,8 +113,9 @@ public class Parser {
         }
 
         Expr expr = expression();
+
         if (!check(EOF) && !check(TokenType.NEW_LINE) && !check(TokenType.END)) {
-            throw error(peek(), "Expect new line after sta istement.");
+            throw error(peek(), "Expect new line after statement.");
         }
         
         // If we're not at the end of the file or block, consume the newline
@@ -165,7 +166,7 @@ public class Parser {
         do { 
             Token name = consume(TokenType.IDENTIFIER, "Expected variable name.");
             names.add(name);
-        } while (!isLoop &&match(TokenType.COMMA));
+        } while (!isLoop && match(TokenType.COMMA));
 
         if (match(TokenType.DECLARE)) {
             do { 
@@ -357,7 +358,7 @@ public class Parser {
         }
 
         // Simple assignment
-        if (match(EQUAL)) {
+        if (match(DECLARE)) {
             Token equals = previous();
             Expr value = assignment();
             // System.out.println("Parser: right side of assignment: " + value);
@@ -431,7 +432,20 @@ public class Parser {
         while (match(TokenType.MINUS, TokenType.PLUS, TokenType.CONCAT)) {
             Token operator = previous();
             Expr right = factor();
+
+            // Check if the operator is CONCAT and the right-hand side is missing
+            if (operator.getType() == TokenType.CONCAT && !(right instanceof Expr)) {
+                throw error(operator, "Missing expression after '&' operator.");
+            }
+
+            
+
             expr = new Expr.Binary(expr, operator, right);
+        }
+
+        // Check for invalid concatenation without an operator
+        if (check(TokenType.STRING) || check(TokenType.IDENTIFIER)) {
+            throw error(peek(), "Missing '&' operator between expressions.");
         }
 
         return expr;
@@ -476,7 +490,7 @@ public class Parser {
     private Expr primary() {
         if (match(TokenType.FALSE)) return new Expr.Literal(false);
         if (match(TokenType.TRUE)) return new Expr.Literal(true);
-        if (match(TokenType.NIL)) return new Expr.Literal(null);
+        if (match(TokenType.NULL)) return new Expr.Literal(null);
 
         if (match(TokenType.INTEGER, TokenType.FLOAT, TokenType.CHARACTER, TokenType.STRING)) {
             // Return a literal expression for numbers, strings, etc.

@@ -22,25 +22,22 @@ import java.util.Scanner;
 public class Interpreter implements Expr.Visitor<Object>
                                     ,Stmt.Visitor<Void> {
     private Environment environment = new Environment();
-
+    private final Scanner scanner = new Scanner(System.in);
 
     @Override
     public Object visitAssignExpr(Expr.Assign expr) {
-        Object value = evaluate(expr.getValue());  // Evaluate the value of the expression
-        Token variableName = expr.getName(); // Get the variable name
+        Object value = evaluate(expr.getValue());  // Evaluate the assigned value
+        Token variableName = expr.getName();       // Get the variable token
 
-        // get current value
-        Object currentValue = environment.get(variableName); // Get the current value of the variable
-
-        // check if the variable is already defined
-        if (currentValue == null) {
+        // Check if variable is defined
+        if (!environment.isDefined(variableName)) {
             throw new RunTimeError(variableName, "Variable '" + variableName.getLexeme() + "' is not defined.");
         }
 
-        // Assign the value to the variable
+        // Assign value to the variable (with type checking inside assign)
         environment.assign(variableName, value);
-        
-        return value; // Return the value
+
+        return value;
     }
 
     public void interpret(List<Stmt> statements) {
@@ -282,11 +279,9 @@ public class Interpreter implements Expr.Visitor<Object>
     public Void visitScanStmt(Stmt.Scan stmt) {
         // System.out.print(""); // Optionally keep prompt on same line
 
-        Scanner scanner = new Scanner(System.in);
         String input = scanner.nextLine();
 
         environment.assign(stmt.name, input);
-        scanner.close();
         return null;
     }
 
@@ -425,7 +420,7 @@ public class Interpreter implements Expr.Visitor<Object>
     private String stringify(Object object) {
         // System.out.println("Stringifying object: " + object + " (Type: " + (object != null ? object.getClass().getName() : "null") + ")");
 
-        if (object == null) return "nil";
+        if (object == null) return "null";
 
         // maybe change this to OO or DILI??
         if (object instanceof Boolean) return (boolean) object ? "OO" : "DILI";

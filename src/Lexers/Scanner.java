@@ -70,6 +70,8 @@ public class Scanner {
 
     // bpp specs
     keywords.put("PUNDOK", TokenType.PUNDOK);
+  
+    keywords.put("NULL",TokenType.NULL);
   }
 
   // Constructor
@@ -201,9 +203,10 @@ public class Scanner {
       case '-': 
         if (match('-')) { // Comments
 
-          if (isDecrementOperator()) {
-            addToken(DECREMENT);
-          } else {
+          // enable decrement here
+          // if (isDecrementOperator()) {
+            // addToken(DECREMENT);
+          // } else {
             while (peek() != '\n' && !isAtEnd()) advance();
             // consume the new line
             if (peek() == '\n') {
@@ -211,7 +214,7 @@ public class Scanner {
               addToken(NEW_LINE);
               advance();
             }
-          }
+          // }
         } else if (match('=')) {  // Assignment operator
           addToken(MINUS_ASSIGN);
         } 

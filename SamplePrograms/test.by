@@ -1,4 +1,13 @@
-SUGOD
-    MUGNA NUMERO a,b = "OO",123
-    IPAKITA: b
+-- remove String
+-- add function
+--
+SUGOD --comment
+    MUGNA NUMERO x = 1, y = 0
+
+    IPAKITA: x & $
+    x += 1000
+    IPAKITA: x
+
+    MUGNA NUMERO c = 9
+    IPAKITA: c
 KATAPUSAN

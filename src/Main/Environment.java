@@ -40,6 +40,32 @@ public class Environment {
     public void assign(Token name, Object value) {
         if (types.containsKey(name.getLexeme())) {
             TokenType varType = types.get(name.getLexeme());
+
+            // If value is a String (from SCAN), attempt conversion based on expected type
+            if (value instanceof String && varType != TokenType.STRING) {
+                String str = (String) value;
+
+                try {
+                    switch (varType) {
+                        case INTEGER -> value = Integer.parseInt(str);
+                        case FLOAT -> value = Double.parseDouble(str);
+                        case BOOLEAN -> {
+                            if (str.equalsIgnoreCase("OO")) value = true;
+                            else if (str.equalsIgnoreCase("DILI")) value = false;
+                            else throw new RunTimeError(name, "Invalid BOOLEAN input: " + str);
+                        }
+                        case CHARACTER -> {
+                            if (str.length() != 1) {
+                                throw new RunTimeError(name, "Expected single character but got: " + str);
+                            }
+                            value = str.charAt(0);
+                        }
+                        default -> throw new RunTimeError(name, "Unsupported type conversion for " + varType);
+                    }
+                } catch (NumberFormatException e) {
+                    throw new RunTimeError(name, "Invalid input for " + varType + ": Expected a number but got: " + str);
+                }
+            }
             
             // Type checking for INTEGER
             if (varType == TokenType.INTEGER) {
@@ -90,5 +116,15 @@ public class Environment {
         } else {
             throw new RunTimeError(name, "Variable '" + name.getLexeme() + "' is not defined.");
         }
+    }
+
+    public boolean isDefined (Token name) {
+        if (types.containsKey(name.getLexeme())) {
+            return true;
+        }
+        if (enclosing != null) {
+            return enclosing.isDefined(name);
+        }
+        return false;
     }
 }

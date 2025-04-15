@@ -113,7 +113,7 @@ public class Baithon {
   private static void report(int line, String where,
                              String message) {
     System.err.println(
-        "[line " + line + "] Error" + where + ": " + message);
+        "\n[line " + line + "] Error" + where + ": " + message);
     hadError = true;
   }
 
