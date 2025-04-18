@@ -5,9 +5,10 @@ SUGOD --comment
     MUGNA NUMERO i = 0
     BUHATA
     PUNDOK {
-        IPAKITA: "hello "
-        KUNG (i == 2) 
+        IPAKITA: "hello " & $
+        KUNG (i == 4) 
         PUNDOK {
+            IPAKITA: "the end"
         }
         i++
     } MINTRAS (i < 5) 

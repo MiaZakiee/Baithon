@@ -96,6 +96,7 @@ public class Baithon {
       // Handle any exceptions that occur during parsing or interpretation
       // System.err.println("An error occurred: " + e.getMessage());
     // }    
+    System.out.println("");
   }
 
   public static void error(int line, String message) {

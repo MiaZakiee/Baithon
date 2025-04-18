@@ -42,10 +42,9 @@ public class Interpreter implements Expr.Visitor<Object>
 
     public void interpret(List<Stmt> statements) {
         try {
-            getLastPrint(statements);
-        for (Stmt statement : statements) {
-            execute(statement);
-        }
+            for (Stmt statement : statements) {
+                execute(statement);
+            }
         } catch (RunTimeError error) {
             Baithon.runTimeError(error);
         }
@@ -328,16 +327,6 @@ public class Interpreter implements Expr.Visitor<Object>
 
     // Helper functions -----------------------------------------------------
 
-    // This function is used to get the last print statement
-    private void getLastPrint(List<Stmt> statements) {
-        for (int i = statements.size() - 1; i >= 0; i--) {
-            if (statements.get(i) instanceof Stmt.Print printStmt) {
-                printStmt.setLast(true);
-                break;
-            }
-        }
-    }
-
     // Used for type fidelity
     private Object numberArithmetic(Object left, Object right, Token operator) {
         TokenType type = operator.getType();
@@ -442,12 +431,8 @@ public class Interpreter implements Expr.Visitor<Object>
     @Override
     public Void visitPrintStmt(Stmt.Print stmt) {
         Object value = evaluate(stmt.getExpression());
-        
         String result = stringify(value);
-        
-        System.out.print(result + 
-            (stmt.isLast() ? "\n" : "")); // Add space if not the last print statement
-
+        System.out.print(result); 
         return null;
     }
 
