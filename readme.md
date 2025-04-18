@@ -79,9 +79,11 @@ the basics of programming. Its simple syntax and native keywords make programmin
 ### Conditional Statements
 
 ```
-KUNG (condition) {
+KUNG (condition) 
+PUNDOK {
     // code to execute if true
-} KUNG PA (another_condition) {
+} KUNG PA (another_condition) 
+PUNDOK {
     // code to execute if previous condition is false and this is true
 } KUNG DILI {
     // code to execute if all conditions are false
@@ -93,7 +95,8 @@ KUNG (condition) {
 #### While Loop
 
 ```
-MINTRAS (condition) {
+MINTRAS (condition) 
+PUNDOK {
     // code to repeat while condition is true
 }
 ```
@@ -110,7 +113,8 @@ PUNDOK {
 #### For Loop
 
 ```
-ALANG SA (initializer, condition, increment) {
+ALANG SA (initializer, condition, increment) 
+PUNDOK {
     // code to execute for each iteration
 }
 ```
@@ -230,17 +234,17 @@ KATAPUSAN
 OO
 ```
 
-### Program with logical operation
+### Program with control structure
 ```
 SUGOD
-    MUGNA NUMERO a=100, b=200, c=300 
-    MUGNA TINUOD d="DILI"
-    d = (a < b UG c <>200)
-    IPAKITA: d
+    ALANG SA (ctr=1, ctr<=10, ctr++)
+        PUNDOK{
+        IPAKITA: ctr & ' '
+        }
 KATAPUSAN
 ```
 
 ### Output
 ```
-OO
+1 2 3 4 5 6 7 8 9 10 
 ```
