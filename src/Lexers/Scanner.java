@@ -187,8 +187,14 @@ public class Scanner {
       // Two character tokens
       // (==, !=, <=, >=)
       case '=': addToken(match('=') ? EQUAL : DECLARE); break;
-      case '!': addToken(match('=') ? NOT_EQUAL : NOT); break;
-      case '<': addToken(match('=') ? LESS_EQUAL : LESS); break;
+      case '!': addToken(NOT); break;
+      case '<': 
+        if (match('>')) addToken(NOT_EQUAL);
+        else if (match('=')) addToken(LESS_EQUAL);
+        else {
+          addToken(LESS);
+        }
+        break;
       case '>': addToken(match('=') ? GREATER_EQUAL : GREATER); break;
 
       // Whitespaces

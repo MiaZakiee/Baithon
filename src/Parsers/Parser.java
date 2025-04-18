@@ -151,49 +151,41 @@ public class Parser {
 
         advance(); // consume data type
 
-        // parse the variable nameS PLURAL for multi declaration
         List<Token> names = new ArrayList<>();
         List<Expr> initializers = new ArrayList<>();
 
-        // consume the variable names
+        // get variable names
         do { 
             Token name = consume(TokenType.IDENTIFIER, "Expected variable name.");
             names.add(name);
-        } while (!isLoop && match(TokenType.COMMA));
 
-        if (match(TokenType.DECLARE)) {
-            do { 
-                Expr initializer = expression();
-                
-                // Baithon specification: true is "OO" and false is "DILI" all enclosed in double quotes
-                if (dataType == BOOLEAN && initializer instanceof Expr.Literal) { 
-                    Object value = ((Expr.Literal) initializer).getValue();
+            Expr initializer = null;
 
-                    if (value instanceof String) {
-                        if (value.equals("OO")) {
-                            initializer = new Expr.Literal(true);
-                        } else if (value.equals("DILI")) {
-                            initializer = new Expr.Literal(false);
-                        } else {
-                            throw error(peek(), "Invalid boolean value: " + value + ". Use \"OO\" or \"DILI\".");
-                        }
+            if (match(TokenType.DECLARE)) {
+                initializer = expression();
+                Object value = ((Expr.Literal) initializer).getValue();
+    
+                if (value instanceof String) {
+                    if (value.equals("OO")) {
+                        initializer = new Expr.Literal(true);
+                    } else if (value.equals("DILI")) {
+                        initializer = new Expr.Literal(false);
+                    } else {
+                        throw error(peek(), "Invalid boolean value: " + value + ". Use \"OO\" or \"DILI\".");
                     }
                 }
 
                 if (!isTypeCompatible(dataType, initializer)) {
                     throw error(peek(), "Type mismatch: " + getExprType(initializer) + " is not of type " + dataType);
                 }
-
-                initializers.add(initializer);
-            } while (!isLoop && match(TokenType.COMMA));
-        } else {
-            if (peek().getType() != NEW_LINE) throw error(peek(), 
-            "Expect new line after variable declaration.");
-
-            for (int i = 0; i < names.size(); i++) {
-                initializers.add(new Expr.Literal(null));
             }
-        }
+
+                
+
+            initializers.add(initializer);
+        } while (!isLoop && match(TokenType.COMMA));
+
+        consume(NEW_LINE, "Expect new line after variable declaration.");
 
         return new Stmt.MultiVar(names, initializers, dataType);
     }
@@ -468,14 +460,7 @@ public class Parser {
                 throw error(operator, "Missing expression after '&' operator.");
             }
 
-            
-
             expr = new Expr.Binary(expr, operator, right);
-        }
-
-        // Check for invalid concatenation without an operator
-        if (check(TokenType.STRING) || check(TokenType.IDENTIFIER)) {
-            throw error(peek(), "Missing '&' operator between expressions.");
         }
 
         return expr;
@@ -551,8 +536,8 @@ public class Parser {
         }
 
         // Debugging
-        // System.out.println("Parser: peek: " + peek());
-        // System.out.println("Parser: current: " + current);
+        System.out.println("Parser: peek: " + peek());
+        System.out.println("Parser: current: " + current);
         // System.out.println("Parser: tokens: " + tokens);
 
         throw error(previous(), "Expect expression.");

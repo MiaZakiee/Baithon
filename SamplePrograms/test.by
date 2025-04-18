@@ -1,15 +1,6 @@
--- remove String
--- add function
---
-SUGOD --comment
-    MUGNA NUMERO i = 0
-    BUHATA
-    PUNDOK {
-        IPAKITA: "hello " & $
-        KUNG (i == 4) 
-        PUNDOK {
-            IPAKITA: "the end"
+SUGOD
+    ALANG SA (ctr=1, ctr<=10, ctr++)
+        PUNDOK{
+        IPAKITA: ctr & ' '
         }
-        i++
-    } MINTRAS (i < 5) 
 KATAPUSAN
