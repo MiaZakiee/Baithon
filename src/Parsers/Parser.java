@@ -99,6 +99,11 @@ public class Parser {
         if (match(TokenType.DO)) return doWhileStatement();
         if (match(TokenType.BREAK)) return breakStatement();
         if (match(TokenType.CONTINUE)) return continueStatement();
+
+
+        if (check(TokenType.LEFT_BRACE)) {
+            throw error(peek(), "Missing 'PUNDOK' keyword before '{'.");
+        }
         
         if (check(TokenType.IF) || check(TokenType.ELIF)) {
             advance();

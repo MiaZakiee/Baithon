@@ -1,7 +1,7 @@
 SUGOD
     MUGNA NUMERO x = 3
     KUNG (x == 1) 
-    PUNDOK {
+    {
         IPAKITA: 1
     }
 KATAPUSAN
