@@ -236,31 +236,42 @@ public class Parser {
         consume(TokenType.LEFT_PAREN, "Expect '(' after 'ALANG SA'.");
 
         Stmt initializer = null;
+        
         if (match(TokenType.VAR)) {
             initializer = varDeclaration(true);
+        } else if (check(TokenType.IDENTIFIER)) {
+            Token name = advance(); 
+            
+            if (match(TokenType.DECLARE)) {
+                Expr value = expression();
+                TokenType dataType = inferDataType(value);
+                List<Token> names = new ArrayList<>();
+                names.add(name);
+                
+                List<Expr> initializers = new ArrayList<>();
+                initializers.add(value);
+                
+                initializer = new Stmt.MultiVar(names, initializers, dataType);
+            } else {
+                current--; // Put the identifier token back
+                initializer = expressionStatement();
+            }
         } else if (!match(TokenType.COMMA)) {
             initializer = expressionStatement();
         }
+        
         consume(TokenType.COMMA, "Expect ',' after initializer.");
-        // debugging
-        // System.out.println("Parser: initializer                FOR LOOP: " + initializer);
-
+        
         Expr condition = null;
         if (!check(COMMA)) {
             condition = expression();
         }
         consume(TokenType.COMMA, "Expect ',' after loop condition.");
 
-        // debugging
-        // System.out.println("Parser: condition             FOR LOOP: " + condition);
-
         Expr increment = null;
         if (!check(RIGHT_PAREN)) {
             increment = expression();
         }
-
-        // debugginginitializer
-        // System.out.println("Parser: increment         FOR LOOP: " + increment);
 
         consume(RIGHT_PAREN, "Expect ')' after loop condition.");
         consume(NEW_LINE, "Expect new line after condition.");
@@ -666,5 +677,19 @@ public class Parser {
             if (value == null) return "NULL";
         } 
         return "UNKNOWN";
+    }
+
+    // Helper method to infer data type from an expression
+    private TokenType inferDataType(Expr value) {
+        if (value instanceof Expr.Literal) {
+            Object literal = ((Expr.Literal) value).getValue();
+            if (literal instanceof Integer) return TokenType.INTEGER;
+            if (literal instanceof Double) return TokenType.FLOAT;
+            if (literal instanceof Boolean) return TokenType.BOOLEAN;
+            if (literal instanceof String) return TokenType.STRING;
+            if (literal instanceof Character) return TokenType.CHARACTER;
+        }
+        // Default to INTEGER for expressions or unknown literals
+        return TokenType.INTEGER;
     }
 }
