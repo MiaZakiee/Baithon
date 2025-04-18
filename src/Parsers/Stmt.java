@@ -14,6 +14,9 @@ public abstract class Stmt {
         R visitIfStmt(If stmt);
         R visitWhileStmt(While stmt);
         R visitScanStmt(Scan stmt);
+        R visitDoWhileStmt(DoWhile stmt);
+        R visitBreakStmt(Break stmt);
+        R visitContinueStmt(Continue stmt);
     }
 
     public static class Expression extends Stmt {
@@ -186,13 +189,52 @@ public abstract class Stmt {
         }
     }
 
-    public static class Scan extends Stmt {
-        public final Token keyword;
-        public final Token name;
+    public static class DoWhile extends Stmt {
+        public DoWhile(Expr condition, Stmt body) {
+        this.condition = condition;
+        this.body = body;
+        }
 
-        public Scan(Token keyword, Token name) {
-            this.keyword = keyword;
-            this.name = name;
+        @Override
+        public <R> R accept(Visitor<R> visitor) {
+            return visitor.visitDoWhileStmt(this);
+        }
+
+        final Expr condition;
+        final Stmt body;
+
+        // getters
+        public Expr getCondition() {
+            return condition;
+        }
+        public Stmt getBody() {
+            return body;
+        }
+    }
+
+    public static class Break extends Stmt {
+        public Break() {}
+
+        @Override
+        public <R> R accept(Visitor<R> visitor) {
+            return visitor.visitBreakStmt(this);
+        }
+    }
+
+    public static class Continue extends Stmt {
+        public Continue() {}
+
+        @Override
+        public <R> R accept(Visitor<R> visitor) {
+            return visitor.visitContinueStmt(this);
+        }
+    }
+
+    public static class Scan extends Stmt {
+        private final List<Token> names;
+
+        public Scan( List<Token> names) {
+            this.names = names;
         }
 
         @Override
@@ -201,15 +243,10 @@ public abstract class Stmt {
         }
 
         // getters
-        public Token getKeyword() {
-            return keyword;
-        }
-        public Token getName() {
-            return name;
+        public List<Token> getNames() {
+            return names;
         }
     }
-
-
 
     public abstract <R> R accept(Visitor<R> visitor);
 }

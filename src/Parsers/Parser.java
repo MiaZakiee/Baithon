@@ -89,27 +89,20 @@ public class Parser {
     }
 
     private Stmt statement() {
-        if (match(TokenType.PRINT)) {
-            return printStatement();
-        } 
-        if (match(TokenType.VAR)) {
-            return varDeclaration(false);
-        } 
-        if (match(TokenType.PUNDOK)) {
-            return new Stmt.Block(block());
-        } 
+
+        if (match(TokenType.PRINT)) return printStatement();
+        if (match(TokenType.VAR)) return varDeclaration(false);
+        if (match(TokenType.PUNDOK)) return new Stmt.Block(block());
+        if (match(TokenType.WHILE)) return whileStatement();
+        if (match(TokenType.FOR)) return forStatement();
+        if (match(TokenType.SCAN)) return scanStatement();
+        if (match(TokenType.DO)) return doWhileStatement();
+        if (match(TokenType.BREAK)) return breakStatement();
+        if (match(TokenType.CONTINUE)) return continueStatement();
+        
         if (check(TokenType.IF) || check(TokenType.ELIF)) {
             advance();
             return ifStatement();
-        }
-        if (match(TokenType.WHILE)) {
-            return whileStatement();
-        }
-        if (match(TokenType.FOR)) {
-            return forStatement();
-        }      
-        if (match(TokenType.SCAN)) {
-            return scanStatement();
         }
 
         Expr expr = expression();
@@ -227,9 +220,24 @@ public class Parser {
         consume(TokenType.RIGHT_PAREN, "Expect ')' after condition.");
         consume(NEW_LINE, "Expect new line after condition.");
 
+        loopDepth++;
         Stmt body = statement();
+        loopDepth--;
 
         return new Stmt.While(condition, body);
+    }
+
+    private Stmt doWhileStatement() {
+        consume(TokenType.NEW_LINE, "Expect new line after 'BUHATA'.");
+        loopDepth++;
+        Stmt body = statement();
+        loopDepth--;
+        consume(TokenType.WHILE, "Expect 'MINTRAS' after 'BUHAT'.");
+        consume(TokenType.LEFT_PAREN, "Expect '(' after 'MINTRAS'.");
+        Expr condition = expression();
+        consume(TokenType.RIGHT_PAREN, "Expect ')' after condition.");
+
+        return new Stmt.DoWhile(condition, body);
     }
 
     private Stmt forStatement() {
@@ -265,7 +273,9 @@ public class Parser {
         consume(RIGHT_PAREN, "Expect ')' after loop condition.");
         consume(NEW_LINE, "Expect new line after condition.");
 
+        loopDepth++;
         Stmt body = statement();
+        loopDepth--;
 
         if (increment != null) {
         body = new Stmt.Block(
@@ -282,6 +292,23 @@ public class Parser {
         }
 
         return body;
+    }
+
+    private int loopDepth = 0;    
+    private Stmt breakStatement() {
+        if (loopDepth == 0) {
+            throw error(previous(), "Cannot use 'HUNONG' outside of a loop.");
+        }
+        consume(TokenType.NEW_LINE, "Expect new line after 'HUNONG'.");
+        return new Stmt.Break();
+    }
+
+    private Stmt continueStatement() {
+        if (loopDepth == 0) {
+            throw error(previous(), "Cannot use 'PADAYON' outside of a loop.");
+        }
+        consume(TokenType.NEW_LINE, "Expect new line after 'PADAYON'.");
+        return new Stmt.Continue();
     }
 
     private Stmt expressionStatement() {
@@ -305,12 +332,15 @@ public class Parser {
     }
 
     private Stmt scanStatement() {
-        // consume the colon
         consume(TokenType.COLON, "Expect ':' after 'DAWAT'.");
 
-        Token keyword = previous();
-        Token name = consume(TokenType.IDENTIFIER, "Expected variable name after 'DAWAT'.");
-        return new Stmt.Scan(keyword,name);
+        List<Token> names = new ArrayList<>();
+        do {
+            Token name = consume(TokenType.IDENTIFIER, "Expected variable name after 'DAWAT'.");
+            names.add(name);
+        } while (match(TokenType.COMMA));
+
+        return new Stmt.Scan(names);
     }
 
     private Expr assignment() {
@@ -525,7 +555,7 @@ public class Parser {
         // System.out.println("Parser: current: " + current);
         // System.out.println("Parser: tokens: " + tokens);
 
-        throw error(peek(), "Expect expression.");
+        throw error(previous(), "Expect expression.");
     }
 
     // error handling methods

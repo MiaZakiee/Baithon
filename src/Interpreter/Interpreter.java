@@ -271,8 +271,39 @@ public class Interpreter implements Expr.Visitor<Object>
     public Void visitWhileStmt(Stmt.While stmt) {
         while (isTruthy(evaluate(stmt.getCondition()))) {
             execute(stmt.getBody());
+            try {
+                execute(stmt.getBody());
+            } catch (BreakException e) {
+                break;
+            } catch (ContinueException e) {
+                // Continue to the next iteration
+            }
         }
         return null;
+    }
+
+    @Override
+    public Void visitDoWhileStmt(Stmt.DoWhile stmt) {
+        do {
+            try {
+                execute(stmt.getBody());
+            } catch (BreakException e) {
+                break;
+            } catch (ContinueException e) {
+                // Continue to the next iteration
+            }
+        } while (isTruthy(evaluate(stmt.getCondition())));
+        return null;
+    }
+
+    @Override
+    public Void visitBreakStmt(Stmt.Break stmt) {
+        throw new BreakException();
+    }
+
+    @Override
+    public Void visitContinueStmt(Stmt.Continue stmt) {
+        throw new ContinueException();
     }
 
     @Override
@@ -280,8 +311,17 @@ public class Interpreter implements Expr.Visitor<Object>
         // System.out.print(""); // Optionally keep prompt on same line
 
         String input = scanner.nextLine();
+        // split by comma
+        String[] parts = input.split(",");
 
-        environment.assign(stmt.name, input);
+        if (stmt.getNames().size() != parts.length) {
+            throw new RunTimeError(stmt.getNames().get(0), "Number of variables does not match number of inputs.");
+        }
+
+        for (int i = 0; i < stmt.getNames().size(); i++) {
+            parts[i] = parts[i].trim(); // trim whitespace
+            environment.assign(stmt.getNames().get(i), parts[i]);
+        }
         return null;
     }
 
@@ -319,18 +359,18 @@ public class Interpreter implements Expr.Visitor<Object>
                 case MINUS -> l - r;
                 case MULTIPLY -> l * r;
                 case DIVIDE -> {
-                    if (r == 0) throw new RunTimeError(null, "Division by zero.");
+                    if (r == 0) throw new RunTimeError(operator, "Division by zero.");
                     yield l / r;
                 }
                 case MODULO -> {
-                    if (r == 0) throw new RunTimeError(null, "Division by zero.");
+                    if (r == 0) throw new RunTimeError(operator, "Division by zero.");
                     yield l % r;
                 }
                 case GREATER -> l > r;
                 case GREATER_EQUAL -> l >= r;
                 case LESS -> l < r;
                 case LESS_EQUAL -> l <= r;
-                default -> throw new RunTimeError(null, "Unsupported operator for integers.");
+                default -> throw new RunTimeError(operator, "Unsupported operator for integers.");
             };
         }
 
@@ -342,18 +382,18 @@ public class Interpreter implements Expr.Visitor<Object>
             case MINUS -> l - r;
             case MULTIPLY -> l * r;
             case DIVIDE -> {
-                if (r == 0) throw new RunTimeError(null, "Division by zero.");
+                if (r == 0) throw new RunTimeError(operator, "Division by zero.");
                 yield l / r;
             }
             case MODULO -> {
-                if (r == 0) throw new RunTimeError(null, "Division by zero.");
+                if (r == 0) throw new RunTimeError(operator, "Division by zero.");
                 yield l % r;
             }
             case GREATER -> l > r;
             case GREATER_EQUAL -> l >= r;
             case LESS -> l < r;
             case LESS_EQUAL -> l <= r;
-            default -> throw new RunTimeError(null, "Unsupported operator for doubles.");
+            default -> throw new RunTimeError(operator, "Unsupported operator for doubles.");
         };
     }
 

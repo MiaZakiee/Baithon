@@ -67,6 +67,10 @@ public class Scanner {
     keywords.put("KUNG",TokenType.IF);
     keywords.put("KUNG DILI",TokenType.ELSE);
     keywords.put("KUNG PA",TokenType.ELIF);
+    keywords.put("BUHATA",TokenType.DO);
+
+    keywords.put("HUNONG",TokenType.BREAK);
+    keywords.put("PADAYON",TokenType.CONTINUE);
 
     // bpp specs
     keywords.put("PUNDOK", TokenType.PUNDOK);
