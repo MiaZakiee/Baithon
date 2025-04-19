@@ -269,7 +269,6 @@ public class Interpreter implements Expr.Visitor<Object>
     @Override
     public Void visitWhileStmt(Stmt.While stmt) {
         while (isTruthy(evaluate(stmt.getCondition()))) {
-            execute(stmt.getBody());
             try {
                 execute(stmt.getBody());
             } catch (BreakException e) {

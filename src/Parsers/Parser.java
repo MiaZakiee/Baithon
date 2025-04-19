@@ -171,6 +171,10 @@ public class Parser {
                 Object value = ((Expr.Literal) initializer).getValue();
     
                 if (value instanceof String) {
+                    if (dataType != (TokenType.BOOLEAN)) {
+                        throw error(peek(), "Type mismatch: " + getExprType(initializer) + " is not of type " + BOOLEAN);
+                    }
+
                     if (value.equals("OO")) {
                         initializer = new Expr.Literal(true);
                     } else if (value.equals("DILI")) {
@@ -190,7 +194,9 @@ public class Parser {
             initializers.add(initializer);
         } while (!isLoop && match(TokenType.COMMA));
 
-        consume(NEW_LINE, "Expect new line after variable declaration.");
+        if (!isLoop) {
+            consume(NEW_LINE, "Expect new line after variable declaration.");
+        }
 
         return new Stmt.MultiVar(names, initializers, dataType);
     }
@@ -241,27 +247,12 @@ public class Parser {
         consume(TokenType.LEFT_PAREN, "Expect '(' after 'ALANG SA'.");
 
         Stmt initializer = null;
-        
+        // declared inside initializer
         if (match(TokenType.VAR)) {
-            initializer = varDeclaration(true);
-        } else if (check(TokenType.IDENTIFIER)) {
-            Token name = advance(); 
-            
-            if (match(TokenType.DECLARE)) {
-                Expr value = expression();
-                TokenType dataType = inferDataType(value);
-                List<Token> names = new ArrayList<>();
-                names.add(name);
-                
-                List<Expr> initializers = new ArrayList<>();
-                initializers.add(value);
-                
-                initializer = new Stmt.MultiVar(names, initializers, dataType);
-            } else {
-                current--; // Put the identifier token back
-                initializer = expressionStatement();
-            }
-        } else if (!match(TokenType.COMMA)) {
+           initializer = varDeclaration(true);
+        } 
+        // declared outside initializer
+        else if (!check(TokenType.COMMA)) {
             initializer = expressionStatement();
         }
         

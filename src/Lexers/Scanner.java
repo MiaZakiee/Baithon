@@ -50,7 +50,7 @@ public class Scanner {
     keywords.put("TIPIK", TokenType.FLOAT);
     keywords.put("TINUOD", TokenType.BOOLEAN);
     // TODO: temporary word will not use string as keyword!
-    keywords.put("STRING", TokenType.STRING);
+    // keywords.put("STRING", TokenType.STRING);
 
     // Logical Operators
     keywords.put("O", TokenType.OR);
