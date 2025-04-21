@@ -1,6 +1,6 @@
 SUGOD
     MUGNA NUMERO ctr
-    MUGNA LETRA test = "agaga"
+    MUGNA LETRA test = 'aaa'
     ALANG SA (MUGNA NUMERO i = 1, i<=10, i++)
         PUNDOK{
         IPAKITA: ctr & ' '
