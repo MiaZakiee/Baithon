@@ -18,12 +18,40 @@
  */
 package Parsers;
 
-import Lexers.Token;
-import Lexers.TokenType;
-import static Lexers.TokenType.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import Lexers.Token;
+import Lexers.TokenType;
+import static Lexers.TokenType.BOOLEAN;
+import static Lexers.TokenType.CHARACTER;
+import static Lexers.TokenType.COMMA;
+import static Lexers.TokenType.DECLARE;
+import static Lexers.TokenType.DIVIDE_ASSIGN;
+import static Lexers.TokenType.EOF;
+import static Lexers.TokenType.EQUAL;
+import static Lexers.TokenType.FLOAT;
+import static Lexers.TokenType.FOR;
+import static Lexers.TokenType.GREATER;
+import static Lexers.TokenType.GREATER_EQUAL;
+import static Lexers.TokenType.IF;
+import static Lexers.TokenType.INTEGER;
+import static Lexers.TokenType.LEFT_BRACE;
+import static Lexers.TokenType.LESS;
+import static Lexers.TokenType.LESS_EQUAL;
+import static Lexers.TokenType.MINUS_ASSIGN;
+import static Lexers.TokenType.MODULO_ASSIGN;
+import static Lexers.TokenType.MULTIPLY_ASSIGN;
+import static Lexers.TokenType.NEW_LINE;
+import static Lexers.TokenType.NOT_EQUAL;
+import static Lexers.TokenType.PLUS_ASSIGN;
+import static Lexers.TokenType.PRINT;
+import static Lexers.TokenType.RETURN;
+import static Lexers.TokenType.RIGHT_BRACE;
+import static Lexers.TokenType.RIGHT_PAREN;
+import static Lexers.TokenType.STRING;
+import static Lexers.TokenType.WHILE;
 
 /* 
 * expression     → literal
@@ -35,7 +63,7 @@ import java.util.List;
 * grouping       → "(" expression ")" ;
 * unary          → ( "-" | "!" ) expression ;
 * binary         → expression operator expression ;
-* operator       → "==" | "!=" | "<" | "<=" | ">" | ">="
+* operator       → "==" | "!=" | "<" | "<="
 *                | "+"  | "-"  | "*" | "/" ;
 */
 
@@ -89,7 +117,6 @@ public class Parser {
     }
 
     private Stmt statement() {
-
         if (match(TokenType.PRINT)) return printStatement();
         if (match(TokenType.VAR)) return varDeclaration(false);
         if (match(TokenType.PUNDOK)) return new Stmt.Block(block());
@@ -99,17 +126,16 @@ public class Parser {
         if (match(TokenType.DO)) return doWhileStatement();
         if (match(TokenType.BREAK)) return breakStatement();
         if (match(TokenType.CONTINUE)) return continueStatement();
-
-
-        if (check(TokenType.LEFT_BRACE)) {
-            throw error(peek(), "Missing 'PUNDOK' keyword before '{'.");
+        if (match(TokenType.IF)) return ifStatement();       
+        
+        // For ELIF and ELSE, they should be handled by ifStatement()
+        if (check(TokenType.ELIF) || check(TokenType.ELSE)) {
+            throw error(peek(), 
+                check(TokenType.ELIF) ? 
+                "'KUNG DILI' without preceding 'KUNG'" : 
+                "'KUNG WALA' without preceding 'KUNG'");
         }
         
-        if (check(TokenType.IF) || check(TokenType.ELIF)) {
-            advance();
-            return ifStatement();
-        }
-
         Expr expr = expression();
 
         if (!check(EOF) && !check(TokenType.NEW_LINE) && !check(TokenType.END)) {
@@ -168,28 +194,12 @@ public class Parser {
 
             if (match(TokenType.DECLARE)) {
                 initializer = expression();
-                Object value = ((Expr.Literal) initializer).getValue();
-    
-                if (value instanceof String) {
-                    if (dataType != (TokenType.BOOLEAN)) {
-                        throw error(peek(), "Type mismatch: " + getExprType(initializer) + " is not of type " + BOOLEAN);
-                    }
-
-                    if (value.equals("OO")) {
-                        initializer = new Expr.Literal(true);
-                    } else if (value.equals("DILI")) {
-                        initializer = new Expr.Literal(false);
-                    } else {
-                        throw error(peek(), "Invalid boolean value: " + value + ". Use \"OO\" or \"DILI\".");
-                    }
-                }
+                // Type checking is still needed, but now works with both literals and expressions
 
                 if (!isTypeCompatible(dataType, initializer)) {
                     throw error(peek(), "Type mismatch: " + getExprType(initializer) + " is not of type " + dataType);
                 }
             }
-
-                
 
             initializers.add(initializer);
         } while (!isLoop && match(TokenType.COMMA));
@@ -202,19 +212,42 @@ public class Parser {
     }
 
     private Stmt ifStatement() {
-        consume(TokenType.LEFT_PAREN, "Expect '(' after 'IF'.");
+        consume(TokenType.LEFT_PAREN, "Expect '(' after 'KUNG'.");
         Expr condition = expression();
         consume(TokenType.RIGHT_PAREN, "Expect ')' after condition.");
-        consume(NEW_LINE, "Expect new line after condition.");
-
-        Stmt thenBranch = statement();
+        consume(TokenType.NEW_LINE, "Expect new line after condition.");
+    
+        Stmt thenBranch = statement(); // This will handle the PUNDOK block
+        List<Stmt.ElseIf> elseIfBranches = new ArrayList<>(); // Initialize empty list by default
         Stmt elseBranch = null;
-
-        if (match(TokenType.ELSE)) {
-            elseBranch = statement();
+    
+        // Process all ELIF branches (KUNG DILI)
+        while (check(TokenType.ELIF)) {
+            advance(); // Consume the ELIF token
+            
+            // Parse the condition for ELIF (KUNG DILI)
+            consume(TokenType.LEFT_PAREN, "Expect '(' after 'KUNG DILI'.");
+            Expr elifCondition = expression();
+            consume(TokenType.RIGHT_PAREN, "Expect ')' after ELIF condition.");
+            consume(TokenType.NEW_LINE, "Expect new line after ELIF condition.");
+            
+            // Parse the ELIF block
+            Stmt elifBlock = statement(); // This will handle the PUNDOK
+            
+            // Add the ELIF branch with its condition
+            elseIfBranches.add(new Stmt.ElseIf(elifCondition, elifBlock));
         }
-
-        return new Stmt.If(condition, thenBranch, elseBranch);
+    
+        // Handle ELSE (KUNG WALA) in a similar way
+        if (check(TokenType.ELSE)) {
+            advance(); // Consume the ELSE token  
+            consume(NEW_LINE, "Expect new line after 'KUNG WALA'.");
+            elseBranch = statement(); // This will handle the PUNDOK
+        }
+    
+        return new Stmt.If(condition, thenBranch, 
+                          elseIfBranches.isEmpty() ? null : elseIfBranches, 
+                          elseBranch);
     }
 
     private Stmt whileStatement() {
@@ -317,16 +350,35 @@ public class Parser {
 
     private List<Stmt> block() {
         List<Stmt> statements = new ArrayList<>();
-
-        // Consume opening brace
+        
+        // Don't try to consume PUNDOK - it's already consumed in statement()
+        
+        // Consume the opening brace
         consume(LEFT_BRACE, "Expect '{' after PUNDOK.");
-
+        
+        // Consume the newline after '{'
+        consume(NEW_LINE, "Expect new line after '{'.");
+        
+        // Parse statements until we reach '}' or end of file
         while (!check(RIGHT_BRACE) && !isAtEnd()) {
-            if (match(TokenType.NEW_LINE)) continue;
+            // Handle special tokens like ELIF and ELSE
+            if (check(TokenType.ELIF) || check(TokenType.ELSE)) {
+                // These should be handled by the enclosing ifStatement method
+                break;
+            }
+            
+            // Skip standalone newlines within the block
+            if (match(NEW_LINE)) continue;
+            
+            // Add the statement to our list
             statements.add(declaration());
         }
-
+        
+        // Consume the closing '}'
         consume(RIGHT_BRACE, "Expect '}' after block.");
+
+        match(NEW_LINE); // Consume the newline after '}'
+        
         return statements;
     }
 
@@ -344,7 +396,7 @@ public class Parser {
 
     private Expr assignment() {
         Expr expr = parseOr();
-        // System.out.println("Parser: left side of assignment: " + expr);
+        System.out.println("Parser: left side of assignment: " + expr);
         
         // Compound assignment
         if (match(PLUS_ASSIGN,MINUS_ASSIGN,MULTIPLY_ASSIGN,DIVIDE_ASSIGN,MODULO_ASSIGN)) {
@@ -390,7 +442,7 @@ public class Parser {
         if (match(DECLARE)) {
             Token equals = previous();
             Expr value = assignment();
-            // System.out.println("Parser: right side of assignment: " + value);
+            System.out.println("Parser: right side of assignment: " + value);
 
             if (expr instanceof Expr.Variable) {
                 Token name = ((Expr.Variable)expr).getName();
@@ -477,7 +529,7 @@ public class Parser {
     private Expr factor() {
         Expr expr = unary();
 
-        while (match(TokenType.DIVIDE, TokenType.MULTIPLY)) {
+        while (match(TokenType.DIVIDE, TokenType.MULTIPLY, TokenType.MODULO)) {
             Token operator = previous();
             Expr right = unary();
             expr = new Expr.Binary(expr, operator, right);
@@ -610,7 +662,7 @@ public class Parser {
         for (TokenType type : types) {
             if (check(type)) {
                 // DEBUGGING
-                // System.out.println("Parser: matched token: " + type);
+                System.out.println("Parser: matched token: " + type);
                 advance();
                 return true;
             }
@@ -637,7 +689,7 @@ public class Parser {
     private Token advance() {
         if (!isAtEnd()) {
             // DEBUGGING
-            // System.out.println("Parser: advancing token: " + peek());
+            System.out.println("Parser: advancing token: " + peek());
             current++;
         }
         return previous();

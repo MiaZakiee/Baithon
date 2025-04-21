@@ -1,10 +1,11 @@
 package Main;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import Interpreter.RunTimeError;
 import Lexers.Token;
 import Lexers.TokenType;
-import java.util.HashMap;
-import java.util.Map;
 // import Parsers.Expr;
 
 public class Environment {
@@ -32,7 +33,7 @@ public class Environment {
 
 
     public void define(String name, Object value, TokenType type) {
-        // System.out.println("Defining variable: " + name + ", value: " + value + ", type: " + type);
+        System.out.println("Defining variable: " + name + ", value: " + value + ", type: " + type);
         values.put(name, value);
         types.put(name, type);
     }

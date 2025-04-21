@@ -11,13 +11,15 @@
  */
 package Interpreter;
 
+import java.util.List;
+import java.util.Scanner;
+
 import Lexers.Token;
 import Lexers.TokenType;
 import Main.Baithon;
 import Main.Environment;
-import Parsers.*;
-import java.util.List;
-import java.util.Scanner;
+import Parsers.Expr;
+import Parsers.Stmt;
 
 public class Interpreter implements Expr.Visitor<Object>
                                     ,Stmt.Visitor<Void> {
@@ -171,20 +173,16 @@ public class Interpreter implements Expr.Visitor<Object>
     @Override
     public Void visitVarStmt(Stmt.Var stmt) {
         Token name = stmt.getName();
+        TokenType declaredType = stmt.getDeclaredType();
+
         Expr initializer = stmt.getInitializer();
-        TokenType declaredType = stmt.getDeclaredType();;
+        Object value = null;
 
         if (initializer != null) {
-            Object value = evaluate(initializer);
-
-            // Convert "OO" and "DILI" to boolean if the declared type is BOOLEAN
-            if (declaredType == TokenType.BOOLEAN && value instanceof String) {
-                if (value.equals("OO")) value = true;
-                if (value.equals("DILI")) value = false;
-            }
+            value = evaluate(initializer);
         }
 
-        environment.define(name.getLexeme(), null, declaredType);
+        environment.define(name.getLexeme(), value, declaredType);
         // DEBUGING FEATURE: print the variable name and value
         try {
             // System.out.println("Variable " + name.getLexeme() + " = " + stringify(value) + " of type " + value.getClass().getName());
@@ -198,22 +196,15 @@ public class Interpreter implements Expr.Visitor<Object>
     @Override
     public Void visitMultiVar(Stmt.MultiVar stmt) {
         List<Token> names = stmt.getNames();
-        List<Expr> initializers = stmt.getInitializers();
         TokenType declaredType = stmt.getDeclaredType();
 
         for(int i = 0; i < names.size(); i++) {
             Token name = names.get(i);
-            Expr initializer = initializers.get(i);
+            Expr initializer = stmt.getInitializers().get(i);
             Object value = null;
 
             if (initializer != null) {
                 value = evaluate(initializer);
-
-                // Convert "OO" and "DILI" to boolean if the declared type is BOOLEAN
-                if (declaredType == TokenType.BOOLEAN && value instanceof String) {
-                    if (value.equals("OO")) value = true;
-                    if (value.equals("DILI")) value = false;
-                }
             }
 
             environment.define(name.getLexeme(), value, declaredType);
@@ -260,9 +251,34 @@ public class Interpreter implements Expr.Visitor<Object>
     public Void visitIfStmt(Stmt.If stmt) {
         if (isTruthy(evaluate(stmt.getCondition()))) {
             execute(stmt.getThenBranch());
-        } else if (stmt.getElseBranch() != null) {
+        } 
+        else if (stmt.getElseIfBranches() != null) {
+            // Process all elif branches (KUNG DILI) in order
+            boolean elifBranchExecuted = false;
+            
+            for (Stmt.ElseIf elifBranch : stmt.getElseIfBranches()) {
+                // Check the condition of the ELIF (KUNG DILI) branch
+                if (isTruthy(evaluate(elifBranch.getCondition()))) {
+                    execute(elifBranch.getBlock());
+                    elifBranchExecuted = true;
+                    break;  // Only execute the first matching condition
+                }
+            }
+            
+            // If no elif branch was executed and there's an else branch, execute it
+            if (!elifBranchExecuted && stmt.getElseBranch() != null) {
+                execute(stmt.getElseBranch());
+            }
+        } 
+        else if (stmt.getElseBranch() != null) {
             execute(stmt.getElseBranch());
         }
+        return null;
+    }
+
+    @Override
+    public Void visitElseIfStmt(Stmt.ElseIf stmt) {
+        // to be handled within visitIfStmt
         return null;
     }
 

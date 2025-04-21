@@ -17,12 +17,43 @@
  */
 package Lexers;
 
-import static Lexers.TokenType.*;
-import Main.Baithon;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static Lexers.TokenType.COLON;
+import static Lexers.TokenType.COMMA;
+import static Lexers.TokenType.CONCAT;
+import static Lexers.TokenType.DECLARE;
+import static Lexers.TokenType.DIVIDE;
+import static Lexers.TokenType.DIVIDE_ASSIGN;
+import static Lexers.TokenType.DOT;
+import static Lexers.TokenType.EQUAL;
+import static Lexers.TokenType.GREATER;
+import static Lexers.TokenType.GREATER_EQUAL;
+import static Lexers.TokenType.IDENTIFIER;
+import static Lexers.TokenType.INCREMENT;
+import static Lexers.TokenType.LEFT_BRACE;
+import static Lexers.TokenType.LEFT_PAREN;
+import static Lexers.TokenType.LESS;
+import static Lexers.TokenType.LESS_EQUAL;
+import static Lexers.TokenType.MINUS;
+import static Lexers.TokenType.MINUS_ASSIGN;
+import static Lexers.TokenType.MODULO;
+import static Lexers.TokenType.MODULO_ASSIGN;
+import static Lexers.TokenType.MULTIPLY;
+import static Lexers.TokenType.MULTIPLY_ASSIGN;
+import static Lexers.TokenType.NEW_LINE;
+import static Lexers.TokenType.NEW_LINE_LITERAL;
+import static Lexers.TokenType.NOT;
+import static Lexers.TokenType.NOT_EQUAL;
+import static Lexers.TokenType.PLUS;
+import static Lexers.TokenType.PLUS_ASSIGN;
+import static Lexers.TokenType.RIGHT_BRACE;
+import static Lexers.TokenType.RIGHT_PAREN;
+import static Lexers.TokenType.SEMICOLON;
+import Main.Baithon;
 
 public class Scanner {
   // This is the file we will be scanning
@@ -58,15 +89,15 @@ public class Scanner {
     keywords.put("DILI", TokenType.NOT);
 
     // BOOLEAN VALUES
-    keywords.put("OO",TokenType.TRUE);
-    keywords.put("DILI",TokenType.FALSE);
+    // keywords.put("OO",TokenType.TRUE);
+    // keywords.put("DILI",TokenType.FALSE);
 
     // Control Flow
     keywords.put("ALANG SA",TokenType.FOR);
     keywords.put("MINTRAS",TokenType.WHILE);
     keywords.put("KUNG",TokenType.IF);
-    keywords.put("KUNG DILI",TokenType.ELSE);
-    keywords.put("KUNG PA",TokenType.ELIF);
+    keywords.put("KUNG WALA",TokenType.ELSE);
+    keywords.put("KUNG DILI",TokenType.ELIF);
     keywords.put("BUHATA",TokenType.DO);
 
     keywords.put("HUNONG",TokenType.BREAK);
@@ -152,6 +183,9 @@ public class Scanner {
         }
         break;
       case ',': addToken(COMMA); break;
+      case '_':
+        identifier();
+        break;
       case '"':
           string();
         break;
@@ -295,7 +329,13 @@ public class Scanner {
 
     // get the string value
     String value = source.substring(start + 1, current - 1);
-    addToken(TokenType.STRING, value);
+    if (value.equals("OO")) {
+      addToken(TokenType.TRUE, true);
+    } else if (value.equals("DILI")) {
+      addToken(TokenType.FALSE, false);
+    } else {
+      addToken(TokenType.STRING, value);
+    }
     // debugging
     // System.out.println("scanner/string: " + value);
   }

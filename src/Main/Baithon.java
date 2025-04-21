@@ -1,11 +1,5 @@
 package Main;
 
-import Interpreter.Interpreter;
-import Interpreter.RunTimeError;
-import Lexers.Scanner;
-import Lexers.Token;
-import Parsers.Parser;
-import Parsers.Stmt;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -13,6 +7,13 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+
+import Interpreter.Interpreter;
+import Interpreter.RunTimeError;
+import Lexers.Scanner;
+import Lexers.Token;
+import Parsers.Parser;
+import Parsers.Stmt;
 public class Baithon {
   // checks if there are any errors
   static boolean hadError = false;
@@ -67,9 +68,9 @@ public class Baithon {
       List<Token> tokens = scanner.scanTokens();
   
       // debugging
-      // for (Token token : tokens) {
-      //   System.out.println("Baithon found: " + token.toString());
-      // }
+      for (Token token : tokens) {
+        System.out.println("Baithon found: " + token.toString());
+      }
   
       // Parsing
       Parser parser = new Parser(tokens);

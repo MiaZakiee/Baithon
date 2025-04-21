@@ -1,8 +1,9 @@
 package Parsers;
 
+import java.util.List;
+
 import Lexers.Token;
 import Lexers.TokenType;
-import java.util.List;
 
 public abstract class Stmt {
     public interface Visitor<R> {
@@ -12,6 +13,7 @@ public abstract class Stmt {
         R visitBlockStmt(Block stmt);
         R visitMultiVar(MultiVar stmt);
         R visitIfStmt(If stmt);
+        R visitElseIfStmt(ElseIf stmt);
         R visitWhileStmt(While stmt);
         R visitScanStmt(Scan stmt);
         R visitDoWhileStmt(DoWhile stmt);
@@ -139,14 +141,16 @@ public abstract class Stmt {
     }
 
     public static class If extends Stmt {
-        public If(Expr condition, Stmt thenBranch, Stmt elseBranch) {
+        public If(Expr condition, Stmt thenBranch, List<ElseIf> elseIfBranches, Stmt elseBranch) {
             this.condition = condition;
             this.thenBranch = thenBranch;
+            this.elseIfBranches = elseIfBranches;
             this.elseBranch = elseBranch;
         }
 
         final Expr condition;
         final Stmt thenBranch;
+        final List<ElseIf> elseIfBranches;
         final Stmt elseBranch;
 
         @Override
@@ -161,8 +165,35 @@ public abstract class Stmt {
         public Stmt getThenBranch() {
             return thenBranch;
         }
+        public List<ElseIf> getElseIfBranches() {
+            return elseIfBranches;
+        }
         public Stmt getElseBranch() {
             return elseBranch;
+        }
+    }
+
+    public static class ElseIf extends Stmt {
+        final Expr condition;
+        final Stmt block;
+
+        public ElseIf(Expr condition, Stmt block) {
+            this.condition = condition;
+            this.block = block;
+        }
+
+        @Override
+        public <R> R accept(Visitor<R> visitor) {
+            return visitor.visitElseIfStmt(this);
+        }
+
+        // Getters
+        public Expr getCondition() {
+            return condition;
+        }
+
+        public Stmt getBlock() {
+            return block;
         }
     }
 

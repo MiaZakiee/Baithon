@@ -1,8 +1,24 @@
 SUGOD
-    MUGNA NUMERO ctr
-    MUGNA LETRA test = 'aaa'
-    ALANG SA (MUGNA NUMERO i = 1, i<=10, i++)
-        PUNDOK{
-        IPAKITA: ctr & ' '
+    MUGNA NUMERO rawr=10
+
+    ALANG SA(MUGNA NUMERO i=1, i < rawr, i++)
+    PUNDOK{
+        IPAKITA: i & $
+        KUNG(i % 2 == 0)
+        PUNDOK {
+            IPAKITA: "isEven!" & $
         }
+        KUNG DILI (i == 5)
+        PUNDOK {
+            IPAKITA: "isOdd D:" & $
+        }
+        KUNG DILI (i == 6)
+        PUNDOK {
+            IPAKITA: "sex" & $
+        }
+        KUNG WALA
+        PUNDOK {
+            IPAKITA: "yea" & $
+        }
+    }
 KATAPUSAN
