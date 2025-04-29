@@ -213,7 +213,12 @@ public class Parser {
 
     private Stmt ifStatement() {
         consume(TokenType.LEFT_PAREN, "Expect '(' after 'KUNG'.");
+
+        if (check(TokenType.RIGHT_PAREN)) throw error(peek(), "Expect condition after 'KUNG'.");
+
         Expr condition = expression();
+        
+
         consume(TokenType.RIGHT_PAREN, "Expect ')' after condition.");
         consume(TokenType.NEW_LINE, "Expect new line after condition.");
     
@@ -351,8 +356,6 @@ public class Parser {
     private List<Stmt> block() {
         List<Stmt> statements = new ArrayList<>();
         
-        // Don't try to consume PUNDOK - it's already consumed in statement()
-        
         // Consume the opening brace
         consume(LEFT_BRACE, "Expect '{' after PUNDOK.");
         
@@ -396,7 +399,7 @@ public class Parser {
 
     private Expr assignment() {
         Expr expr = parseOr();
-        System.out.println("Parser: left side of assignment: " + expr);
+        // System.out.println("Parser: left side of assignment: " + expr);
         
         // Compound assignment
         if (match(PLUS_ASSIGN,MINUS_ASSIGN,MULTIPLY_ASSIGN,DIVIDE_ASSIGN,MODULO_ASSIGN)) {
@@ -442,7 +445,7 @@ public class Parser {
         if (match(DECLARE)) {
             Token equals = previous();
             Expr value = assignment();
-            System.out.println("Parser: right side of assignment: " + value);
+            // System.out.println("Parser: right side of assignment: " + value);
 
             if (expr instanceof Expr.Variable) {
                 Token name = ((Expr.Variable)expr).getName();
@@ -597,7 +600,7 @@ public class Parser {
         // Debugging
         System.out.println("Parser: peek: " + peek());
         System.out.println("Parser: current: " + current);
-        // System.out.println("Parser: tokens: " + tokens);
+        System.out.println("Parser: tokens: " + tokens);
 
         throw error(previous(), "Expect expression.");
     }
@@ -662,7 +665,7 @@ public class Parser {
         for (TokenType type : types) {
             if (check(type)) {
                 // DEBUGGING
-                System.out.println("Parser: matched token: " + type);
+                // System.out.println("Parser: matched token: " + type);
                 advance();
                 return true;
             }
@@ -689,7 +692,7 @@ public class Parser {
     private Token advance() {
         if (!isAtEnd()) {
             // DEBUGGING
-            System.out.println("Parser: advancing token: " + peek());
+            // System.out.println("Parser: advancing token: " + peek());
             current++;
         }
         return previous();

@@ -33,7 +33,7 @@ public class Environment {
 
 
     public void define(String name, Object value, TokenType type) {
-        System.out.println("Defining variable: " + name + ", value: " + value + ", type: " + type);
+        // System.out.println("Defining variable: " + name + ", value: " + value + ", type: " + type);
         values.put(name, value);
         types.put(name, type);
     }
@@ -126,6 +126,20 @@ public class Environment {
         if (enclosing != null) {
             return enclosing.isDefined(name);
         }
+        return false;
+    }
+
+    public boolean existsInCurrentScope(String name) {
+        return values.containsKey(name);
+    }
+
+    public boolean existsInAnyScope(String name) {
+        if (values.containsKey(name)) return true;
+
+        if (enclosing != null) {
+            return enclosing.existsInAnyScope(name);
+        }
+        
         return false;
     }
 }

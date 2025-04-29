@@ -49,6 +49,7 @@ public class Interpreter implements Expr.Visitor<Object>
             }
         } catch (RunTimeError error) {
             Baithon.runTimeError(error);
+            throw new RuntimeException();
         }
     } 
 
@@ -205,6 +206,12 @@ public class Interpreter implements Expr.Visitor<Object>
 
             if (initializer != null) {
                 value = evaluate(initializer);
+            }
+
+            // Check if variable already exists in current scope before defining
+            if (environment.existsInAnyScope(name.getLexeme())) {
+                throw new RunTimeError(name, 
+                    "Variable '" + name.getLexeme() + "' already declared in this scope.");
             }
 
             environment.define(name.getLexeme(), value, declaredType);

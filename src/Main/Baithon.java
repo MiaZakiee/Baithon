@@ -62,15 +62,15 @@ public class Baithon {
     if (hadRuntimeError) System.exit(70);
     
 
-    // try {
+    try {
       // Lexical Analysis
       Scanner scanner = new Scanner(source);
       List<Token> tokens = scanner.scanTokens();
   
       // debugging
-      for (Token token : tokens) {
-        System.out.println("Baithon found: " + token.toString());
-      }
+      // for (Token token : tokens) {
+      //   System.out.println("Baithon found: " + token.toString());
+      // }
   
       // Parsing
       Parser parser = new Parser(tokens);
@@ -93,11 +93,12 @@ public class Baithon {
       // for (Token token : tokens) {
         // System.out.println(token);
       // }
-    // } catch (Exception e) {
+    } catch (Exception e) {
       // Handle any exceptions that occur during parsing or interpretation
-      // System.err.println("An error occurred: " + e.getMessage());
-    // }    
-    System.out.println("");
+      System.err.println("An error occurred");
+      return;
+    }    
+      System.out.println("\nprogram finished");
   }
 
   public static void error(int line, String message) {
